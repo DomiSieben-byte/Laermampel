@@ -89,7 +89,10 @@ body.day #batBob{animation:none}
 
 #left{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;display:flex;flex-direction:column;gap:10px;z-index:3}
 .card{background:var(--card);border-radius:20px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.15);color:var(--cardInk)}
-#timerCard{display:flex;align-items:center;gap:10px}
+#timerCard{min-width:190px}
+.tRow{display:flex;align-items:center;gap:10px}
+.play{margin-left:auto;width:40px;height:40px;font-size:18px;background:#5cc26b;color:#fff}
+.play.stop{background:#e8505b}
 #timerCard.off{display:none}
 #ring{width:clamp(48px,8vh,74px);height:clamp(48px,8vh,74px)}
 #timerTxt{font-weight:900;font-size:clamp(18px,3.2vh,30px);font-variant-numeric:tabular-nums}
@@ -114,6 +117,27 @@ body.day #batBob{animation:none}
 #bottom{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:3}
 #meterBox{display:none;width:min(80vw,420px);background:var(--card);border-radius:14px;padding:6px 10px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
 body.mic #meterBox{display:block}
+#ctrlRow{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+#meterBox{width:min(60vw,380px)}
+#pauseBtn{border:none;border-radius:999px;padding:8px 16px;font-weight:900;font-size:clamp(14px,2.2vh,18px);background:var(--card);color:#5b3f66;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px}
+#pauseBtn:active{transform:scale(.95)}
+body.paused #pauseBtn{background:#5cc26b;color:#fff}
+body.paused #stageLabel{background:#8d86a6}
+body.paused #halo{background:radial-gradient(circle,rgba(200,195,220,.45) 0,transparent 68%)}
+body.paused .sbtn{opacity:.55}
+#bars{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;margin-top:8px}
+.bar{height:10px;border-radius:6px;background:#ece3ef;overflow:hidden}
+.bar span{display:block;height:100%;width:0;border-radius:6px;transition:width .5s}
+.bpct{font-size:12px;font-weight:900;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
+#pauseInfo{font-size:12px;font-weight:700;opacity:.7;margin-top:4px}
+#pauseInfo:empty{display:none}
+#evalDialog .dialog{text-align:center}
+#evalBars{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center;text-align:left;margin:14px 0}
+#evalBars .bar{height:18px;border-radius:9px}
+#evalBars .bar span{border-radius:9px}
+#evalStars{font-size:54px;min-height:64px;letter-spacing:6px}
+#evalStars .lost{filter:grayscale(1);opacity:.45;text-decoration:line-through}
+#evalMsg{font-size:20px;font-weight:800}
 .meter{position:relative;height:14px;border-radius:8px;background:linear-gradient(90deg,var(--s1) 0,var(--s1) var(--t2),var(--s2) var(--t2),var(--s2) var(--t3),var(--s3) var(--t3),var(--s3) var(--t4),var(--s4) var(--t4));opacity:.95;overflow:hidden}
 .meter .cover{position:absolute;top:0;bottom:0;right:0;background:#e8e0eb;transition:left .08s linear}
 .meterCap{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#6b5375;margin-top:2px}
@@ -385,12 +409,17 @@ input[type=text]{width:180px}
 
 <div id="left">
   <div id="timerCard" class="card">
+   <div class="tRow">
     <svg id="ring" viewBox="0 0 80 80">
       <circle cx="40" cy="40" r="33" fill="none" stroke="#ece3ef" stroke-width="9"/>
       <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#5cc26b" stroke-width="9" stroke-linecap="round" transform="rotate(-90 40 40)" stroke-dasharray="207.3" stroke-dashoffset="0"/>
       <text x="40" y="47" text-anchor="middle" font-size="22">⏳</text>
     </svg>
-    <div><div id="timerTxt">5:00</div><div id="timerSub">Ruhe-Timer</div></div>
+    <div><div id="timerTxt">20:00</div><div id="timerSub">Arbeitszeit</div></div>
+    <button class="mini play" id="tStart" aria-label="Arbeitszeit starten" title="Arbeitszeit starten">▶</button>
+  </div>
+  <div id="bars"></div>
+  <div id="pauseInfo"></div>
   </div>
   <div id="gemCard" class="card">
     <div id="gemRow">
@@ -413,9 +442,12 @@ input[type=text]{width:180px}
 </div>
 
 <div id="bottom">
-  <div id="meterBox">
-    <div class="meter" id="liveMeter"><div class="cover"></div></div>
-    <div class="meterCap"><span>🎤 Mikrofon misst</span><span id="meterHint">leise ← → laut</span></div>
+  <div id="ctrlRow">
+    <button id="pauseBtn" title="Messung unterbrechen (Taste P)"><span id="pauseIco">✋</span><span id="pauseTxt">Ich erkläre kurz</span></button>
+    <div id="meterBox">
+      <div class="meter" id="liveMeter"><div class="cover"></div></div>
+      <div class="meterCap"><span>🎤 Mikrofon misst</span><span id="meterHint">leise ← → laut</span></div>
+    </div>
   </div>
   <div id="stages"></div>
 </div>
@@ -452,28 +484,50 @@ input[type=text]{width:180px}
     </section>
 
     <section>
-      <h3 style="margin-top:0">Ruhe-Timer</h3>
-      <div class="row"><label>Timer anzeigen</label><label class="switch"><input type="checkbox" id="timerOn"><span></span></label></div>
+      <h3 style="margin-top:0">Arbeitszeit &amp; Auswertung</h3>
+      <div class="row"><label>Arbeitszeit anzeigen</label><label class="switch"><input type="checkbox" id="timerOn"><span></span></label></div>
       <div class="row"><label>Dauer</label>
-        <div class="seg" id="segMin"><button data-v="3">3</button><button data-v="5">5</button><button data-v="10">10</button><button data-v="15">15</button></div>
-        <input type="number" min="1" max="60" id="timerMin"> Min.
+        <div class="seg" id="segMin"><button data-v="10">10</button><button data-v="15">15</button><button data-v="20">20</button><button data-v="30">30</button><button data-v="45">45</button></div>
+        <input type="number" min="1" max="90" id="timerMin"> Min.
       </div>
-      <p class="hint">Der Timer läuft nur bei Stufe 1. Bei Stufe 2 pausiert er, ab Stufe 3 beginnt er von vorn. Läuft er durch, gibt es einen Stern.</p>
+      <p class="hint">Mit ▶ startest du die Arbeitszeit. Die Uhr läuft immer durch und misst, wie lange jede Farbe dran war. Am Ende gibt es die Auswertung.</p>
+      <div class="row"><label><span class="dot" style="background:var(--s1)"></span>2 Sterne ab … % Grün</label><input type="number" min="1" max="100" id="g2"> %</div>
+      <div class="row"><label><span class="dot" style="background:var(--s1)"></span>1 Stern ab … % Grün</label><input type="number" min="0" max="100" id="g1"> %</div>
+      <div class="row"><label><span class="dot" style="background:var(--s4)"></span>1 Stern Abzug ab mehr als … % Rot</label><input type="number" min="0" max="100" id="redMax"> %</div>
+    </section>
+
+    <section>
+      <h3 style="margin-top:0">Pause-Knopf</h3>
+      <div class="row"><label>Beschriftung</label><input type="text" id="pauseLabel" maxlength="24"></div>
+      <div class="row"><label>Symbol</label>
+        <div class="seg" id="segIco"><button data-v="✋">✋</button><button data-v="🗣️">🗣️</button><button data-v="🤫">🤫</button><button data-v="👩‍🏫">👩‍🏫</button><button data-v="👨‍🏫">👨‍🏫</button><button data-v="⏸️">⏸️</button></div>
+      </div>
+      <p class="hint">Während der Pause läuft die Uhr weiter, aber die Lautstärke wird nicht bewertet und zählt nicht in die Auswertung. Nochmal tippen (oder Taste P) und es geht weiter.</p>
     </section>
 
     <section>
       <h3 style="margin-top:0">Belohnung</h3>
       <div class="row"><label>Ziel (Sterne)</label><input type="number" min="1" max="200" id="goal"></div>
       <div class="row"><label>Belohnung</label><input type="text" id="reward" maxlength="30"></div>
-      <div class="row"><label>Bei Lärm-Alarm 1 Stern abziehen</label><label class="switch"><input type="checkbox" id="removeOn"><span></span></label></div>
+      <div class="row"><label>Zusätzlich bei jedem Lärm-Alarm sofort 1 Stern abziehen</label><label class="switch"><input type="checkbox" id="removeOn"><span></span></label></div>
       <div class="row"><button class="btn light" id="gemReset">Sterne auf 0 setzen</button></div>
     </section>
 
     <section>
       <h3 style="margin-top:0">Allgemein</h3>
       <div class="row"><label>Ton</label><label class="switch"><input type="checkbox" id="soundOn"><span></span></label></div>
-      <p class="hint">Tasten: 1–4 Stufe · T Tag/Nacht · H Halloween · M Mikrofon · F Vollbild · + / − Stern</p>
+      <p class="hint">Tasten: 1–4 Stufe · T Tag/Nacht · H Halloween · M Mikrofon · F Vollbild · P Pause · + / − Stern</p>
     </section>
+  </div>
+</div>
+
+<div class="overlay" id="evalDialog">
+  <div class="dialog">
+    <div style="font-size:26px;font-weight:900">Auswertung 🦇</div>
+    <div id="evalBars"></div>
+    <div id="evalStars"></div>
+    <div id="evalMsg"></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="evalOk">Weiter</button></div>
   </div>
 </div>
 
@@ -496,13 +550,17 @@ const $ = id => document.getElementById(id);
 const KEY = "laermFledermaus.v1";
 const LABELS = ["", "Psst … super leise!", "Etwas zu laut", "Viel zu laut!", "Lärm-Alarm!"];
 const DEF = {night:true, halloween:true, sound:true, mode:"hand", t2:40, t3:58, t4:75, react:1.5, calm:3,
-  timerOn:true, timerMin:5, goal:20, reward:"Spielpause", removeOn:true, diamonds:0};
+  timerOn:true, timerMin:20, goal:20, reward:"Spielpause", removeOn:false, diamonds:0,
+  g2:80, g1:50, redMax:5, pauseLabel:"Ich erkläre kurz", pauseIcon:"✋", ver:2};
 let S = Object.assign({}, DEF);
 try { const raw = localStorage.getItem(KEY); if (raw) Object.assign(S, JSON.parse(raw)); } catch(e) {}
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
 
 let stage = 1;
-let remaining = S.timerMin * 60;
+if (S.ver !== 2){ S.ver = 2; S.removeOn = false; S.timerMin = 20; }
+const ST = ["#5cc26b","#f4c430","#f39233","#e8505b"];
+let phase = {running:false, elapsed:0, total:S.timerMin*60, t:[0,0,0,0,0], pause:0};
+let paused = false;
 
 /* ---------- Ton (wird erzeugt, keine Dateien) ---------- */
 let actx = null;
@@ -630,7 +688,7 @@ function render(){
   const bat = $("bat");
   bat.classList.toggle("wave", S.night && stage===1);
   bat.classList.toggle("droop", S.night && stage===4);
-  $("stageLabel").textContent = LABELS[stage];
+  $("stageLabel").textContent = paused ? `${S.pauseIcon} ${S.pauseLabel || "Pause"}` : LABELS[stage];
   document.querySelectorAll(".sbtn").forEach(b => b.classList.toggle("active", +b.dataset.n === stage));
   $("tDay").textContent = S.night ? "☀️" : "🌙";
   $("tDay").title = S.night ? "Zum Tag wechseln" : "Zur Nacht wechseln";
@@ -645,7 +703,6 @@ function setStage(n){
   const prev = stage; stage = n;
   const lbl = $("stageLabel"); lbl.classList.remove("pop"); void lbl.offsetWidth; lbl.classList.add("pop");
   if (n >= 3 && n > prev){ const w=$("batWrap"); w.classList.remove("shake"); void w.offsetWidth; w.classList.add("shake"); }
-  if (n >= 3) remaining = S.timerMin * 60;
   if (n > prev) (n === 4 ? sndAlarm : n === 3 ? sndUp3 : sndUp2)(); else sndDown();
   if (n === 4 && prev !== 4 && S.removeOn && S.diamonds > 0) loseGem();
   render();
@@ -704,23 +761,90 @@ $("gemPlus").addEventListener("click", e => { e.stopPropagation(); ac(); addGem(
 $("gemMinus").addEventListener("click", e => { e.stopPropagation(); if (S.diamonds>0){ S.diamonds--; save(); renderGems(); } });
 $("goalRedeem").addEventListener("click", () => { S.diamonds = 0; save(); renderGems(); $("goalDialog").classList.remove("open"); });
 
-/* ---------- Ruhe-Timer ---------- */
+/* ---------- Arbeitszeit ---------- */
 const CIRC = 2*Math.PI*33;
+const fmt = sec => { sec = Math.max(0, Math.ceil(sec)); return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`; };
+function pcts(){
+  const act = phase.t[1]+phase.t[2]+phase.t[3]+phase.t[4];
+  return [1,2,3,4].map(i => act ? phase.t[i]/act*100 : 0);
+}
+function barsHTML(p){
+  return p.map((v,i) => `<div class="bar"><span style="width:${v.toFixed(1)}%;background:${ST[i]}"></span></div><span class="bpct">${Math.round(v)} %</span>`).join("");
+}
+(function initBars(){ $("bars").innerHTML = barsHTML([0,0,0,0]); })();
 function renderTimer(){
   $("timerCard").classList.toggle("off", !S.timerOn);
-  const r = Math.max(0, Math.ceil(remaining));
-  $("timerTxt").textContent = `${Math.floor(r/60)}:${String(r%60).padStart(2,"0")}`;
-  const frac = 1 - remaining/(S.timerMin*60);
-  $("ringFg").setAttribute("stroke-dashoffset", (CIRC*(1-frac)).toFixed(1));
-  $("ringFg").setAttribute("stroke", stage===1 ? "#5cc26b" : stage===2 ? "#f4c430" : "#c9bfd0");
-  $("timerSub").textContent = stage===1 ? "Ruhe-Timer läuft" : stage===2 ? "pausiert" : "beginnt neu";
+  const total = phase.running ? phase.total : S.timerMin*60;
+  $("timerTxt").textContent = fmt(total - phase.elapsed);
+  $("ringFg").setAttribute("stroke-dashoffset", (CIRC*(1 - phase.elapsed/total)).toFixed(1));
+  $("ringFg").setAttribute("stroke", paused ? "#b9b2cc" : ST[stage-1]);
+  $("timerSub").textContent = !phase.running ? "Arbeitszeit" : paused ? "Pause" : "läuft";
+  const b = $("tStart"); b.textContent = phase.running ? "■" : "▶"; b.classList.toggle("stop", phase.running);
+  b.title = phase.running ? "Arbeitszeit beenden und auswerten" : "Arbeitszeit starten";
+  const p = pcts();
+  $("bars").querySelectorAll(".bar span").forEach((el,i) => el.style.width = p[i].toFixed(1)+"%");
+  $("bars").querySelectorAll(".bpct").forEach((el,i) => el.textContent = Math.round(p[i])+" %");
+  $("pauseInfo").textContent = phase.pause >= 1 ? `${S.pauseIcon} Pause: ${fmt(phase.pause)}` : "";
 }
+function startPhase(){
+  ac();
+  phase = {running:true, elapsed:0, total:S.timerMin*60, t:[0,0,0,0,0], pause:0};
+  tone([523,659,784], 0.2, "triangle", 0.1, 0.15);
+  toast(`⏱ ${S.timerMin} Minuten Arbeitszeit – los geht's!`);
+  renderTimer();
+}
+function finishPhase(){
+  phase.running = false;
+  if (paused) setPaused(false);
+  const p = pcts(), act = phase.t[1]+phase.t[2]+phase.t[3]+phase.t[4];
+  renderTimer();
+  if (act < 1){ toast("Keine Messzeit – keine Auswertung."); return; }
+  const earned = p[0] >= S.g2 ? 2 : p[0] >= S.g1 ? 1 : 0;
+  const penalty = p[3] > S.redMax ? 1 : 0;
+  const names = ["Grün","Gelb","Orange","Rot"];
+  $("evalBars").innerHTML = p.map((v,i) => `<b>${names[i]}</b><div class="bar"><span style="width:${v.toFixed(1)}%;background:${ST[i]}"></span></div><b>${Math.round(v)} %</b>`).join("");
+  let stars = "⭐".repeat(earned) + (penalty ? '<span class="lost">⭐</span>' : "");
+  $("evalStars").innerHTML = stars || "🦇";
+  const net = earned - penalty;
+  let msg = earned === 2 ? `Super! ${Math.round(p[0])} % im grünen Bereich – 2 Sterne!` :
+            earned === 1 ? `Gut gemacht! ${Math.round(p[0])} % Grün – 1 Stern.` :
+                           `Diesmal nur ${Math.round(p[0])} % Grün – kein Stern. Nächstes Mal klappt's!`;
+  if (penalty) msg += ` Aber ${Math.round(p[3])} % Rot – 1 Stern weniger.`;
+  $("evalMsg").textContent = msg;
+  $("evalDialog").classList.add("open");
+  net > 0 ? sndGoal() : net < 0 ? sndLose() : sndDown();
+  const before = S.diamonds;
+  S.diamonds = Math.max(0, S.diamonds + net); save(); renderGems();
+  if (net > 0) sparkles(innerWidth/2, innerHeight*0.4);
+  phase.goalHit = before < S.goal && S.diamonds >= S.goal;
+}
+$("evalOk").addEventListener("click", () => {
+  $("evalDialog").classList.remove("open");
+  if (phase.goalHit){ phase.goalHit = false; $("goalText").textContent = `${S.goal} Sterne = ${S.reward || "Belohnung"}!`; $("goalDialog").classList.add("open"); }
+});
+$("tStart").addEventListener("click", e => { e.stopPropagation(); phase.running ? finishPhase() : startPhase(); });
+
+/* ---------- Pause ---------- */
+function renderPauseBtn(){
+  $("pauseIco").textContent = paused ? "▶" : S.pauseIcon;
+  $("pauseTxt").textContent = paused ? "Weiter" : (S.pauseLabel || "Pause");
+}
+function setPaused(v){
+  paused = v; upAcc = 0; downAcc = 0;
+  document.body.classList.toggle("paused", paused);
+  $("stageLabel").textContent = paused ? `${S.pauseIcon} ${S.pauseLabel || "Pause"}` : LABELS[stage];
+  renderPauseBtn(); renderTimer();
+  tone(paused ? [660,523] : [523,660], 0.18, "sine", 0.12, 0.12);
+}
+$("pauseBtn").addEventListener("click", () => { ac(); setPaused(!paused); });
+
 let lastTick = performance.now();
 setInterval(() => {
   const now = performance.now(), dt = (now-lastTick)/1000; lastTick = now;
-  if (S.timerOn && stage === 1){
-    remaining -= dt;
-    if (remaining <= 0){ remaining = S.timerMin*60; addGem(true); }
+  if (phase.running){
+    phase.elapsed += dt;
+    if (paused) phase.pause += dt; else phase.t[stage] += dt;
+    if (phase.elapsed >= phase.total){ phase.elapsed = phase.total; finishPhase(); }
   }
   if (S.timerOn) renderTimer();
 }, 250);
@@ -760,7 +884,7 @@ function micLoop(){
   level += (raw - level) * 0.12;
   const now = performance.now(), dt = (now - lastMic)/1000; lastMic = now;
   if (calibrating){ calibrating.sum += level; calibrating.n++; }
-  if (S.mode === "mic" && now > manualHoldUntil){
+  if (S.mode === "mic" && !paused && now > manualHoldUntil){
     const target = level >= S.t4 ? 4 : level >= S.t3 ? 3 : level >= S.t2 ? 2 : 1;
     if (target > stage){ upAcc += dt; downAcc = 0; if (upAcc >= S.react){ upAcc = 0; setStage(target); } }
     else if (target < stage){ downAcc += dt; upAcc = 0; if (downAcc >= S.calm){ downAcc = 0; setStage(stage-1); } }
@@ -814,6 +938,8 @@ function syncSettings(){
   $("react").value = S.react; $("reactv").textContent = S.react + " s";
   $("calm").value = S.calm; $("calmv").textContent = S.calm + " s";
   $("timerOn").checked = S.timerOn; $("timerMin").value = S.timerMin;
+  $("g2").value = S.g2; $("g1").value = S.g1; $("redMax").value = S.redMax; $("pauseLabel").value = S.pauseLabel;
+  document.querySelectorAll("#segIco button").forEach(b => b.classList.toggle("on", b.dataset.v === S.pauseIcon));
   document.querySelectorAll("#segMin button").forEach(b => b.classList.toggle("on", +b.dataset.v === S.timerMin));
   $("goal").value = S.goal; $("reward").value = S.reward; $("removeOn").checked = S.removeOn; $("soundOn").checked = S.sound;
   $("micTestRow").style.display = micRunning ? "none" : "";
@@ -843,7 +969,13 @@ $("calib").addEventListener("click", async () => {
   }, 1000);
 });
 $("timerOn").addEventListener("change", () => { S.timerOn = $("timerOn").checked; save(); render(); });
-function setMin(m){ m = Math.max(1, Math.min(60, Math.round(m)||5)); S.timerMin = m; remaining = m*60; save(); syncSettings(); renderTimer(); }
+function setMin(m){ m = Math.max(1, Math.min(90, Math.round(m)||20)); S.timerMin = m; if (!phase.running) phase.total = m*60; save(); syncSettings(); renderTimer(); }
+const clampPct = (id, def) => { const v = Math.round(+$(id).value); return isNaN(v) ? def : Math.max(0, Math.min(100, v)); };
+$("g2").addEventListener("change", () => { S.g2 = Math.max(clampPct("g2",80), S.g1); save(); syncSettings(); });
+$("g1").addEventListener("change", () => { S.g1 = Math.min(clampPct("g1",50), S.g2); save(); syncSettings(); });
+$("redMax").addEventListener("change", () => { S.redMax = clampPct("redMax",5); save(); syncSettings(); });
+$("pauseLabel").addEventListener("input", () => { S.pauseLabel = $("pauseLabel").value; save(); renderPauseBtn(); if (paused) $("stageLabel").textContent = `${S.pauseIcon} ${S.pauseLabel || "Pause"}`; });
+document.querySelectorAll("#segIco button").forEach(b => b.addEventListener("click", () => { S.pauseIcon = b.dataset.v; save(); syncSettings(); renderPauseBtn(); renderTimer(); }));
 document.querySelectorAll("#segMin button").forEach(b => b.addEventListener("click", () => setMin(+b.dataset.v)));
 $("timerMin").addEventListener("change", () => setMin(+$("timerMin").value));
 $("goal").addEventListener("change", () => { S.goal = Math.max(1, Math.min(200, Math.round(+$("goal").value)||20)); save(); syncSettings(); renderGems(); });
@@ -865,6 +997,7 @@ document.addEventListener("keydown", e => {
   else if (k==="f") toggleFull();
   else if (k==="+") $("gemPlus").click();
   else if (k==="-") $("gemMinus").click();
+  else if (k==="p") $("pauseBtn").click();
   else if (k==="escape") document.querySelectorAll(".overlay.open").forEach(o => o.classList.remove("open"));
 });
 
@@ -876,7 +1009,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 
 /* ---------- Start ---------- */
 if (S.mode === "mic"){ S.mode = "hand"; toast("Tippe auf 🎤, um das Mikrofon wieder einzuschalten."); }
-render(); syncSettings();
+render(); syncSettings(); renderPauseBtn();
 })();
 </script>
 </body>
