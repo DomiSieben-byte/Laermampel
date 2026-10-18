@@ -4,4 +4,4 @@ Digitale Lärmampel für die Klasse: Eine Fledermaus zeigt in 4 Stufen, wie laut
 Steuerung per Hand oder per Mikrofon (es wird nur die Lautstärke gemessen, nichts aufgenommen oder gespeichert).
 Mit Ruhe-Timer, Sternen als Belohnung, Tag/Nacht- und Halloween-Modus.
 
-Läuft im Browser: https://domisieben-byte.github.io/laermampel/
+Läuft im Browser: https://domisieben-byte.github.io/Laermampel/
