@@ -512,6 +512,7 @@ input[type=text]{width:180px}
 
     <section>
       <h3 style="margin-top:0">Belohnung</h3>
+      <div class="row"><label>Aktueller Sternestand</label><input type="number" min="0" max="999" id="gemSet"></div>
       <div class="row"><label>Ziel (Sterne)</label><input type="number" min="1" max="200" id="goal"></div>
       <div class="row"><label>Belohnung</label><input type="text" id="reward" maxlength="30"></div>
       <div class="row"><label>Zusätzlich bei jedem Lärm-Alarm sofort 1 Stern abziehen</label><label class="switch"><input type="checkbox" id="removeOn"><span></span></label></div>
@@ -946,7 +947,7 @@ function syncSettings(){
   $("g2").value = S.g2; $("g1").value = S.g1; $("redMax").value = S.redMax; $("pauseLabel").value = S.pauseLabel;
   document.querySelectorAll("#segIco button").forEach(b => b.classList.toggle("on", b.dataset.v === S.pauseIcon));
   document.querySelectorAll("#segMin button").forEach(b => b.classList.toggle("on", +b.dataset.v === S.timerMin));
-  $("goal").value = S.goal; $("reward").value = S.reward; $("removeOn").checked = S.removeOn; $("soundOn").checked = S.sound;
+  $("gemSet").value = S.diamonds; $("goal").value = S.goal; $("reward").value = S.reward; $("removeOn").checked = S.removeOn; $("soundOn").checked = S.sound;
   $("micTestRow").style.display = micRunning ? "none" : "";
 }
 document.querySelectorAll("#segMode button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.v)));
@@ -985,6 +986,7 @@ document.querySelectorAll("#segMin button").forEach(b => b.addEventListener("cli
 $("timerMin").addEventListener("change", () => setMin(+$("timerMin").value));
 $("goal").addEventListener("change", () => { S.goal = Math.max(1, Math.min(200, Math.round(+$("goal").value)||20)); save(); syncSettings(); renderGems(); });
 $("reward").addEventListener("input", () => { S.reward = $("reward").value; save(); renderGems(); });
+$("gemSet").addEventListener("change", () => { S.diamonds = Math.max(0, Math.min(999, Math.round(+$("gemSet").value)||0)); save(); renderGems(); syncSettings(); toast(`Sternestand: ${S.diamonds} ⭐`); });
 $("removeOn").addEventListener("change", () => { S.removeOn = $("removeOn").checked; save(); });
 $("soundOn").addEventListener("change", () => { S.sound = $("soundOn").checked; save(); render(); });
 $("gemReset").addEventListener("click", () => { S.diamonds = 0; save(); renderGems(); toast("Sterne zurückgesetzt"); });
@@ -1015,6 +1017,13 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 /* ---------- Start ---------- */
 if (S.mode === "mic"){ S.mode = "hand"; toast("Tippe auf 🎤, um das Mikrofon wieder einzuschalten."); }
 render(); syncSettings(); renderPauseBtn();
+// Speicher dauerhaft anfordern und prüfen, ob der Browser überhaupt speichert
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
+(function checkStorage(){
+  let ok = false;
+  try { localStorage.setItem(KEY+".test","1"); ok = localStorage.getItem(KEY+".test") === "1"; localStorage.removeItem(KEY+".test"); } catch(e) {}
+  if (!ok) setTimeout(() => toast("Achtung: Dieser Browser speichert nichts (privater Modus?). Sterne gehen beim Schließen verloren."), 1500);
+})();
 })();
 </script>
 </body>
