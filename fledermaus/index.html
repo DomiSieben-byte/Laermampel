@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lärm-Fledermaus</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#2b3374">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --s1:#5cc26b; --s2:#f4c430; --s3:#f39233; --s4:#e8505b;
+  --stage:var(--s1);
+  --ink:#3b2a3f; --card:rgba(255,255,255,.88); --cardInk:#4a3550;
+  --font: "Nunito","Varela Round","Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#2c3474;font-family:var(--font);color:var(--ink);user-select:none;-webkit-user-select:none}
+button{font-family:inherit;cursor:pointer}
+
+/* ---------- Szene ---------- */
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+#skyNight,#moon,#stars,.nightOnly{opacity:0;transition:opacity 1.2s}
+body.night #skyNight,body.night #moon,body.night #stars,body.night .nightOnly{opacity:1}
+#sun,.dayOnly{transition:opacity 1.2s}
+body.night #sun,body.night .dayOnlyScene{opacity:0}
+#land{transition:filter 1.2s}
+body.night #land{filter:brightness(.55) saturate(.85)}
+#halloween{opacity:0;transition:opacity .8s}
+body.halloween #halloween{opacity:1}
+.towerWin{fill:#4a3b55;transition:fill 1.2s}
+body.night .towerWin{fill:#ffcf6b}
+.pumpFace{fill:#7a3608;transition:fill 1s}
+body.night .pumpFace{fill:#ffd96a}
+.bulb{transition:filter 1s}
+body.night .bulb{filter:drop-shadow(0 0 6px currentColor) brightness(1.3)}
+#sunRays{transform-origin:1180px 170px;animation:spin 60s linear infinite}
+.twinkle{animation:twinkle 3s ease-in-out infinite}
+.cloud{animation:drift 90s linear infinite}
+body.night .cloud{opacity:.25}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes drift{from{transform:translateX(-200px)}to{transform:translateX(1800px)}}
+
+#fx{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.leaf{position:absolute;top:-40px;width:18px;height:14px;border-radius:0 80% 0 80%;opacity:.9;animation:fall linear infinite}
+body.night .leaf{opacity:.35}
+@keyframes fall{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(60px,55vh) rotate(200deg)}100%{transform:translate(-20px,110vh) rotate(400deg)}}
+.firefly{position:absolute;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle,#fffbb0 0,#f8e85a 40%,rgba(248,232,90,0) 70%);box-shadow:0 0 12px 4px rgba(250,240,120,.55);opacity:0;transition:opacity 1.2s;animation:float 9s ease-in-out infinite}
+body.night .firefly{opacity:1}
+@keyframes float{0%,100%{transform:translate(0,0)}25%{transform:translate(30px,-25px)}50%{transform:translate(-15px,-45px)}75%{transform:translate(-35px,-10px)}}
+.shooting{position:absolute;width:120px;height:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);border-radius:2px;transform:rotate(-25deg);animation:shoot 1.3s ease-out forwards}
+@keyframes shoot{from{opacity:1;translate:0 0}to{opacity:0;translate:-500px 230px}}
+
+/* ---------- Fledermaus ---------- */
+#batWrap{position:fixed;left:50%;top:54%;transform:translate(-50%,-50%);width:min(52vh,78vw);aspect-ratio:300/330;cursor:pointer;z-index:2}
+#halo{position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--stage) 55%,transparent) 0,transparent 68%);transition:background .6s;animation:halo 3s ease-in-out infinite}
+body.s4 #halo{animation-duration:1s}
+@keyframes halo{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+#bat{position:relative;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 8px 14px rgba(0,0,0,.25))}
+#batBob{animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+body.day #batSway{transform-origin:150px 46px;animation:sway 5s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+body.day #batBob{animation:none}
+#batWrap.shake #bat{animation:shake .5s ease-in-out 3}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+#wingL,#wingR{transition:transform .5s}
+#wingL{transform-origin:110px 195px}
+#wingR{transform-origin:190px 195px}
+#bat.wave #wingR{animation:wave 1.4s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(-48deg)}}
+#bat.droop #wingL{transform:rotate(-22deg)}
+#bat.droop #wingR{transform:rotate(22deg)}
+.part{display:none}
+.part.on{display:inline}
+.drop{animation:drop 1.4s ease-in infinite}
+.drop.d2{animation-delay:.7s}
+@keyframes drop{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(95px);opacity:0}}
+.zz{animation:zz 2.4s ease-in-out infinite}
+.zz:nth-child(2){animation-delay:.6s}.zz:nth-child(3){animation-delay:1.2s}
+@keyframes zz{0%{opacity:0;transform:translate(0,10px)}40%{opacity:1}100%{opacity:0;transform:translate(10px,-18px)}}
+.heart{position:fixed;font-size:30px;pointer-events:none;animation:heart 1.6s ease-out forwards;z-index:5}
+@keyframes heart{from{opacity:1;transform:translate(-50%,-50%) scale(.6)}to{opacity:0;transform:translate(calc(-50% + var(--dx)),-160px) scale(1.3)}}
+
+/* ---------- HUD ---------- */
+#top{position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:3;pointer-events:none;width:min(92vw,620px)}
+#title{background:var(--card);padding:6px 22px;border-radius:999px;font-weight:900;font-size:clamp(18px,3.4vh,32px);letter-spacing:.5px;color:#5b3f66;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+#stageLabel{background:var(--stage);color:#fff;padding:8px 26px;border-radius:999px;font-weight:900;font-size:clamp(20px,4.4vh,44px);text-shadow:0 2px 0 rgba(0,0,0,.18);box-shadow:0 6px 18px rgba(0,0,0,.2);transition:background .5s;white-space:nowrap}
+#stageLabel.pop{animation:pop .45s ease-out}
+@keyframes pop{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+#left{position:fixed;top:max(12px,env(safe-area-inset-top));left:12px;display:flex;flex-direction:column;gap:10px;z-index:3}
+.card{background:var(--card);border-radius:20px;padding:10px 14px;box-shadow:0 4px 14px rgba(0,0,0,.15);color:var(--cardInk)}
+#timerCard{min-width:190px}
+.tRow{display:flex;align-items:center;gap:10px}
+.play{margin-left:auto;width:40px;height:40px;font-size:18px;background:#5cc26b;color:#fff}
+.play.stop{background:#e8505b}
+#timerCard.off{display:none}
+#ring{width:clamp(48px,8vh,74px);height:clamp(48px,8vh,74px)}
+#timerTxt{font-weight:900;font-size:clamp(18px,3.2vh,30px);font-variant-numeric:tabular-nums}
+#timerSub{font-size:12px;font-weight:700;opacity:.7}
+#gemCard{min-width:150px}
+#gemRow{display:flex;align-items:center;gap:8px;font-weight:900;font-size:clamp(20px,3.4vh,32px)}
+#gemRow svg{width:clamp(28px,4.4vh,40px);height:auto}
+#gemBtns{margin-left:auto;display:flex;gap:4px}
+.mini{width:30px;height:30px;border-radius:50%;border:none;background:#efe3f3;color:#5b3f66;font-size:18px;font-weight:900;line-height:1}
+#gemBar{height:10px;border-radius:6px;background:#ece3ef;margin-top:6px;overflow:hidden}
+#gemFill{height:100%;width:0;background:linear-gradient(90deg,#ffd34f,#ff9f43);border-radius:6px;transition:width .5s}
+#gemGoal{font-size:13px;font-weight:800;margin-top:4px;opacity:.85}
+#gemCard.bump{animation:pop .5s}
+#gemCard.lose{animation:shake .5s}
+
+#tools{position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;display:flex;flex-direction:column;gap:8px;z-index:3}
+.tool{width:clamp(44px,6.4vh,58px);height:clamp(44px,6.4vh,58px);border-radius:50%;border:none;background:var(--card);box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:clamp(20px,3.2vh,28px);display:grid;place-items:center;transition:transform .15s}
+.tool:active{transform:scale(.9)}
+.tool.active{background:#fff;outline:3px solid var(--stage)}
+.tool.dim{opacity:.55}
+
+#bottom{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:3}
+#meterBox{display:none;width:min(80vw,420px);background:var(--card);border-radius:14px;padding:6px 10px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+body.mic #meterBox{display:block}
+#ctrlRow{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+#meterBox{width:min(60vw,380px)}
+#pauseBtn{border:none;border-radius:999px;padding:8px 16px;font-weight:900;font-size:clamp(14px,2.2vh,18px);background:var(--card);color:#5b3f66;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:6px}
+#pauseBtn:active{transform:scale(.95)}
+body.paused #pauseBtn{background:#5cc26b;color:#fff}
+body.paused #stageLabel{background:#8d86a6}
+body.paused #halo{background:radial-gradient(circle,rgba(200,195,220,.45) 0,transparent 68%)}
+body.paused .sbtn{opacity:.55}
+#bars{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;margin-top:8px}
+.bar{height:10px;border-radius:6px;background:#ece3ef;overflow:hidden}
+.bar span{display:block;height:100%;width:0;border-radius:6px;transition:width .5s}
+.bpct{font-size:12px;font-weight:900;min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
+#pauseInfo{font-size:12px;font-weight:700;opacity:.7;margin-top:4px}
+#pauseInfo:empty{display:none}
+#evalDialog .dialog{text-align:center}
+#evalBars{display:grid;grid-template-columns:auto 1fr auto;gap:8px 10px;align-items:center;text-align:left;margin:14px 0}
+#evalBars .bar{height:18px;border-radius:9px}
+#evalBars .bar span{border-radius:9px}
+#evalStars{font-size:54px;min-height:64px;letter-spacing:6px}
+#evalStars .lost{filter:grayscale(1);opacity:.45;text-decoration:line-through}
+#evalMsg{font-size:20px;font-weight:800}
+.meter{position:relative;height:14px;border-radius:8px;background:linear-gradient(90deg,var(--s1) 0,var(--s1) var(--t2),var(--s2) var(--t2),var(--s2) var(--t3),var(--s3) var(--t3),var(--s3) var(--t4),var(--s4) var(--t4));opacity:.95;overflow:hidden}
+.meter .cover{position:absolute;top:0;bottom:0;right:0;background:#e8e0eb;transition:left .08s linear}
+.meterCap{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:#6b5375;margin-top:2px}
+#stages{display:flex;gap:clamp(8px,2vw,22px)}
+.sbtn{width:clamp(60px,10vh,92px);height:clamp(60px,10vh,92px);border-radius:50%;border:5px solid var(--c);background:#fff;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,.18);transition:transform .2s,box-shadow .2s}
+.sbtn svg{width:100%;height:100%}
+.sbtn.active{transform:scale(1.15);box-shadow:0 0 0 5px color-mix(in srgb,var(--c) 45%,transparent),0 6px 16px rgba(0,0,0,.25)}
+
+/* ---------- Effekte ---------- */
+.bigGem{position:fixed;left:50%;top:45%;width:140px;transform:translate(-50%,-50%);z-index:6;pointer-events:none;animation:bigGem 1.8s ease-out forwards}
+@keyframes bigGem{0%{transform:translate(-50%,-50%) scale(.2) rotate(-20deg);opacity:0}25%{transform:translate(-50%,-50%) scale(1.2) rotate(5deg);opacity:1}60%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:1}100%{left:90px;top:120px;transform:translate(-50%,-50%) scale(.2);opacity:.2}}
+.lostGem{position:fixed;width:46px;z-index:6;pointer-events:none;animation:lost 1.5s ease-in forwards}
+@keyframes lost{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(260px) rotate(160deg);opacity:0}}
+.minus{position:fixed;font-weight:900;font-size:34px;color:var(--s4);z-index:6;pointer-events:none;animation:minus 1.4s ease-out forwards;text-shadow:0 2px 0 #fff}
+@keyframes minus{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-40px)}}
+.spark{position:fixed;width:10px;height:10px;border-radius:50%;z-index:6;pointer-events:none;animation:spark 1s ease-out forwards}
+@keyframes spark{from{opacity:1;transform:translate(0,0) scale(1)}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+#toast{position:fixed;left:50%;bottom:30%;transform:translateX(-50%);background:#4a3550;color:#fff;padding:12px 20px;border-radius:14px;font-weight:700;z-index:20;opacity:0;transition:opacity .3s;pointer-events:none;max-width:86vw;text-align:center}
+#toast.show{opacity:1}
+
+/* ---------- Dialoge ---------- */
+.overlay{position:fixed;inset:0;background:rgba(30,20,50,.45);display:none;align-items:center;justify-content:center;z-index:10;padding:16px}
+.overlay.open{display:flex}
+.dialog{background:#fffaf5;border-radius:26px;max-width:560px;width:100%;max-height:92vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 50px rgba(0,0,0,.35);color:#4a3550}
+.dialog h2{margin:0 0 12px;font-size:24px;display:flex;align-items:center;justify-content:space-between}
+.dialog h3{margin:18px 0 8px;font-size:17px;color:#7a4f8a}
+.dialog section{background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.row{display:flex;align-items:center;gap:10px;margin:8px 0;flex-wrap:wrap}
+.row label{font-weight:700;flex:1;min-width:150px}
+.seg{display:flex;background:#efe3f3;border-radius:999px;padding:3px}
+.seg button{border:none;background:none;padding:7px 14px;border-radius:999px;font-weight:800;color:#6b5375}
+.seg button.on{background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.12);color:#4a3550}
+input[type=range]{flex:2;min-width:150px;accent-color:#9b6bb5}
+input[type=number],input[type=text]{border:2px solid #e3d5ea;border-radius:10px;padding:6px 8px;font:inherit;font-weight:700;color:#4a3550;width:90px}
+input[type=text]{width:180px}
+.val{font-weight:900;min-width:44px;text-align:right}
+.dot{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:6px}
+.hint{font-size:13px;opacity:.8;margin:6px 0 0}
+.privacy{background:#eaf7ee;border-radius:12px;padding:8px 12px;font-size:13px;font-weight:700;color:#2f6b3d}
+.btn{border:none;border-radius:999px;padding:9px 16px;font-weight:800;background:#9b6bb5;color:#fff}
+.btn.light{background:#efe3f3;color:#5b3f66}
+.x{border:none;background:#efe3f3;width:38px;height:38px;border-radius:50%;font-size:20px;font-weight:900;color:#5b3f66}
+.row label.switch,.switch{position:relative;width:52px;height:30px;flex:none;min-width:0}
+.switch input{opacity:0;width:0;height:0}
+.switch span{position:absolute;inset:0;background:#d9cde0;border-radius:999px;transition:.2s}
+.switch span::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked+span{background:#5cc26b}
+.switch input:checked+span::after{left:25px}
+#goalDialog .dialog{text-align:center}
+#goalDialog .big{font-size:30px;font-weight:900;margin:8px 0}
+
+@media (max-aspect-ratio:3/4){
+  #batWrap{top:52%;width:min(44vh,82vw)}
+  #left{top:auto;bottom:calc(max(12px,env(safe-area-inset-bottom)) + clamp(60px,10vh,92px) + 26px);flex-direction:row}
+  body.mic #left{bottom:calc(max(12px,env(safe-area-inset-bottom)) + clamp(60px,10vh,92px) + 76px)}
+  #top{top:max(12px,env(safe-area-inset-top));width:72vw;left:12px;transform:none;align-items:flex-start}
+}
+</style>
+</head>
+<body class="night halloween s1">
+
+<!-- ================= Szene ================= -->
+<svg id="scene" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <defs>
+    <linearGradient id="gDay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#78c4f0"/><stop offset=".55" stop-color="#bfe6f6"/><stop offset="1" stop-color="#ffe3ad"/>
+    </linearGradient>
+    <linearGradient id="gNight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#111843"/><stop offset=".55" stop-color="#2b3374"/><stop offset="1" stop-color="#6a5596"/>
+    </linearGradient>
+    <radialGradient id="gSun"><stop offset="0" stop-color="#fff3b0" stop-opacity=".9"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gMoon"><stop offset="0" stop-color="#fff6d6" stop-opacity=".55"/><stop offset="1" stop-color="#fff6d6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gGlow"><stop offset="0" stop-color="#ffd25e" stop-opacity=".8"/><stop offset="1" stop-color="#ffd25e" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#gDay)"/>
+  <rect id="skyNight" width="1600" height="900" fill="url(#gNight)"/>
+  <g id="stars"></g>
+  <g id="sun">
+    <circle cx="1180" cy="170" r="150" fill="url(#gSun)"/>
+    <g id="sunRays" stroke="#ffd65c" stroke-width="10" stroke-linecap="round">
+      <line x1="1180" y1="60" x2="1180" y2="80"/><line x1="1180" y1="260" x2="1180" y2="280"/>
+      <line x1="1070" y1="170" x2="1090" y2="170"/><line x1="1270" y1="170" x2="1290" y2="170"/>
+      <line x1="1102" y1="92" x2="1116" y2="106"/><line x1="1244" y1="234" x2="1258" y2="248"/>
+      <line x1="1102" y1="248" x2="1116" y2="234"/><line x1="1244" y1="106" x2="1258" y2="92"/>
+    </g>
+    <circle cx="1180" cy="170" r="70" fill="#ffd34f"/>
+    <circle cx="1180" cy="170" r="58" fill="#ffe27a"/>
+  </g>
+  <g id="moon">
+    <circle cx="1180" cy="170" r="200" fill="url(#gMoon)"/>
+    <circle cx="1180" cy="170" r="88" fill="#fff2c7"/>
+    <circle cx="1150" cy="145" r="16" fill="#f3e2aa"/><circle cx="1210" cy="200" r="22" fill="#f3e2aa"/><circle cx="1215" cy="135" r="9" fill="#f3e2aa"/><circle cx="1150" cy="205" r="8" fill="#f3e2aa"/>
+  </g>
+  <g fill="#fff" opacity=".85">
+    <g class="cloud" style="animation-delay:-20s"><ellipse cx="200" cy="200" rx="80" ry="30"/><ellipse cx="250" cy="185" rx="55" ry="35"/><ellipse cx="160" cy="190" rx="40" ry="25"/></g>
+    <g class="cloud" style="animation-delay:-65s"><ellipse cx="300" cy="300" rx="70" ry="24"/><ellipse cx="340" cy="288" rx="45" ry="28"/></g>
+  </g>
+
+  <g id="land">
+    <!-- ferne Hügel -->
+    <path d="M0 560 Q200 470 420 540 T860 520 T1300 500 T1600 530 V900 H0Z" fill="#e7b877"/>
+    <g fill="#e0913f"><circle cx="220" cy="520" r="22"/><circle cx="250" cy="530" r="16"/><circle cx="640" cy="515" r="20"/><circle cx="980" cy="500" r="24"/><circle cx="1010" cy="510" r="16"/></g>
+    <g fill="#d65f35"><circle cx="600" cy="525" r="16"/><circle cx="940" cy="512" r="15"/></g>
+    <path d="M0 640 Q250 560 520 630 T1050 610 T1600 600 V900H0Z" fill="#d48a4b"/>
+    <!-- Burghügel mit Turm -->
+    <path d="M1020 660 Q1290 470 1600 520 V900 H1020Z" fill="#b8763f"/>
+    <g>
+      <rect x="1350" y="360" width="80" height="175" fill="#a7a6bd"/>
+      <path d="M1346 360 h16 v-22 h16 v22 h12 v-22 h16 v22 h12 v-14 h16 v14 h6 v10 h-88z" fill="#a7a6bd"/>
+      <rect x="1350" y="360" width="80" height="8" fill="#9091ab"/>
+      <rect class="towerWin" x="1381" y="405" width="18" height="30" rx="9"/>
+      <rect class="towerWin" x="1381" y="465" width="18" height="26" rx="9"/>
+      <rect x="1430" y="440" width="90" height="95" fill="#9b9ab2"/>
+      <path d="M1430 440 h14 v-14 h14 v14 h14 v-10 h14 v10 h14 v-16 h20 v16 z" fill="#9b9ab2"/>
+      <path d="M1356 520 q20 -30 40 0 M1440 500 q14 -20 28 0" stroke="#6f9d4f" stroke-width="10" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- Wiese -->
+    <path d="M0 730 Q400 660 800 705 T1600 690 V900 H0Z" fill="#a3c86c"/>
+    <path d="M0 800 Q500 750 900 790 T1600 780 V900 H0Z" fill="#8ab65c"/>
+    <!-- Pilze -->
+    <g transform="translate(330 790)"><rect x="-5" y="0" width="10" height="20" rx="4" fill="#f6ead7"/><path d="M-20 4 Q0 -22 20 4Z" fill="#e1574a"/><circle cx="-6" cy="-4" r="3" fill="#fff"/><circle cx="7" cy="-2" r="2.5" fill="#fff"/></g>
+    <g transform="translate(1280 805) scale(.8)"><rect x="-5" y="0" width="10" height="20" rx="4" fill="#f6ead7"/><path d="M-20 4 Q0 -22 20 4Z" fill="#c9844a"/></g>
+    <!-- Baum links -->
+    <path d="M60 900 C70 700 40 520 110 330 C130 280 150 260 170 240 L190 255 C150 330 140 450 150 560 C160 700 170 800 190 900Z" fill="#7a4b2a"/>
+    <path d="M120 360 C180 320 240 300 300 300" stroke="#7a4b2a" stroke-width="18" fill="none" stroke-linecap="round"/>
+    <g>
+      <circle cx="40" cy="120" r="110" fill="#e46c2c"/><circle cx="170" cy="80" r="100" fill="#f0a030"/><circle cx="290" cy="150" r="90" fill="#f7c948"/>
+      <circle cx="80" cy="250" r="90" fill="#f0a030"/><circle cx="220" cy="230" r="80" fill="#d9542b"/><circle cx="330" cy="280" r="55" fill="#e46c2c"/>
+      <circle cx="-20" cy="320" r="80" fill="#f7c948"/><circle cx="120" cy="-10" r="90" fill="#d9542b"/>
+      <circle cx="150" cy="150" r="10" fill="#fbe08a" opacity=".7"/><circle cx="250" cy="120" r="8" fill="#fbe08a" opacity=".7"/><circle cx="60" cy="200" r="9" fill="#fbe08a" opacity=".7"/>
+    </g>
+    <!-- Baum rechts -->
+    <path d="M1600 900 V250 C1560 300 1540 380 1545 520 C1550 700 1530 820 1520 900Z" fill="#7a4b2a"/>
+    <g>
+      <circle cx="1560" cy="60" r="110" fill="#f0a030"/><circle cx="1460" cy="-10" r="90" fill="#e46c2c"/><circle cx="1620" cy="200" r="90" fill="#d9542b"/><circle cx="1500" cy="140" r="70" fill="#f7c948"/>
+    </g>
+  </g>
+
+  <!-- Halloween-Deko -->
+  <g id="halloween">
+    <path id="garland" d="M-20 70 Q300 200 640 90 Q960 -5 1320 120 Q1480 170 1620 60" stroke="#5a3f2e" stroke-width="3" fill="none"/>
+    <g id="bulbs"></g>
+    <g id="pumpkins"></g>
+    <g transform="translate(298 300)">
+      <line x1="0" y1="0" x2="0" y2="22" stroke="#5a3f2e" stroke-width="3"/>
+      <circle class="nightOnly" cx="0" cy="52" r="55" fill="url(#gGlow)"/>
+      <rect x="-18" y="22" width="36" height="8" rx="3" fill="#5a3f2e"/>
+      <rect x="-22" y="30" width="44" height="46" rx="18" fill="#f08a2b"/>
+      <path d="M-11 30 V76 M0 30 V76 M11 30 V76" stroke="#d26d18" stroke-width="2.5"/>
+      <rect x="-18" y="76" width="36" height="8" rx="3" fill="#5a3f2e"/>
+    </g>
+  </g>
+</svg>
+
+<div id="fx"></div>
+
+<!-- ================= Fledermaus ================= -->
+<div id="batWrap" title="Antippen für Herzchen">
+  <div id="halo"></div>
+  <svg id="bat" viewBox="0 0 300 330">
+    <g id="branch" class="part">
+      <path d="M-60 50 Q60 34 150 44 T360 38" stroke="#7a4b2a" stroke-width="16" fill="none" stroke-linecap="round"/>
+      <path d="M40 40 q-10 -30 10 -40" stroke="#7a4b2a" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <ellipse cx="50" cy="-4" rx="16" ry="9" fill="#f0a030" transform="rotate(-30 50 -4)"/>
+      <ellipse cx="248" cy="28" rx="16" ry="9" fill="#e46c2c" transform="rotate(25 248 28)"/>
+      <ellipse cx="275" cy="22" rx="13" ry="8" fill="#f7c948" transform="rotate(-15 275 22)"/>
+      <ellipse cx="20" cy="38" rx="13" ry="8" fill="#d9542b" transform="rotate(20 20 38)"/>
+    </g>
+    <g id="batSway">
+     <g id="batRot">
+      <g id="batBob">
+        <!-- Flügel -->
+        <g id="wingsOpen" class="part on">
+          <g id="wingL">
+            <path d="M112 190 C86 158 50 142 16 148 C25 166 22 186 14 204 C33 199 48 206 54 223 C68 214 82 220 88 237 C97 227 105 227 114 233 Z" fill="#6b5a72"/>
+            <path d="M110 194 L18 150 M110 202 L54 222 M112 210 L88 236" stroke="#57475e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          </g>
+          <g id="wingR"><g transform="matrix(-1 0 0 1 300 0)">
+            <path d="M112 190 C86 158 50 142 16 148 C25 166 22 186 14 204 C33 199 48 206 54 223 C68 214 82 220 88 237 C97 227 105 227 114 233 Z" fill="#6b5a72"/>
+            <path d="M110 194 L18 150 M110 202 L54 222 M112 210 L88 236" stroke="#57475e" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+          </g></g>
+        </g>
+        <!-- Füße -->
+        <ellipse cx="133" cy="274" rx="12" ry="8" fill="#5f4f66"/>
+        <ellipse cx="167" cy="274" rx="12" ry="8" fill="#5f4f66"/>
+        <!-- Körper -->
+        <ellipse cx="150" cy="222" rx="50" ry="54" fill="#8a7a8e"/>
+        <ellipse cx="150" cy="230" rx="33" ry="40" fill="#f4e6d8"/>
+        <path d="M138 196 l6 8 l6 -8 l6 8 l6 -8" stroke="#e5d2c0" stroke-width="3" fill="none" stroke-linejoin="round"/>
+        <!-- verschränkte Flügel -->
+        <g id="wingsFold" class="part">
+          <path d="M104 196 C116 222 150 238 192 240 C190 252 172 258 150 258 C124 256 106 240 100 220 Z" fill="#6b5a72"/>
+          <path d="M196 196 C184 222 150 238 108 240 C110 252 128 258 150 258 C176 256 194 240 200 220 Z" fill="#776680"/>
+        </g>
+        <!-- Ohren -->
+        <path d="M100 108 L82 34 Q122 52 132 82 Z" fill="#7a6a80" stroke="#7a6a80" stroke-width="10" stroke-linejoin="round"/>
+        <path d="M200 108 L218 34 Q178 52 168 82 Z" fill="#7a6a80" stroke="#7a6a80" stroke-width="10" stroke-linejoin="round"/>
+        <path d="M104 98 L92 50 Q118 64 124 86 Z" fill="#f2b8c6"/>
+        <path d="M196 98 L208 50 Q182 64 176 86 Z" fill="#f2b8c6"/>
+        <!-- Kopf -->
+        <ellipse cx="150" cy="132" rx="66" ry="60" fill="#8a7a8e"/>
+        <path d="M136 76 q8 -14 14 -2 q6 -14 14 2" fill="#8a7a8e"/>
+        <ellipse cx="150" cy="150" rx="40" ry="30" fill="#9c8ca0" opacity=".55"/>
+
+        <!-- Augen -->
+        <g id="eOpen" class="part on">
+          <circle cx="124" cy="132" r="16" fill="#3b2a3f"/><circle cx="176" cy="132" r="16" fill="#3b2a3f"/>
+          <circle cx="129" cy="126" r="5.5" fill="#fff"/><circle cx="181" cy="126" r="5.5" fill="#fff"/>
+          <circle cx="119" cy="138" r="2.5" fill="#fff"/><circle cx="171" cy="138" r="2.5" fill="#fff"/>
+        </g>
+        <g id="eWide" class="part">
+          <circle cx="122" cy="130" r="21" fill="#fff" stroke="#3b2a3f" stroke-width="3"/><circle cx="178" cy="130" r="21" fill="#fff" stroke="#3b2a3f" stroke-width="3"/>
+          <circle cx="122" cy="132" r="9" fill="#3b2a3f"/><circle cx="178" cy="132" r="9" fill="#3b2a3f"/>
+          <circle cx="125" cy="129" r="3" fill="#fff"/><circle cx="181" cy="129" r="3" fill="#fff"/>
+        </g>
+        <g id="eClosed" class="part" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round">
+          <path d="M110 130 Q124 142 138 130"/><path d="M162 130 Q176 142 190 130"/>
+        </g>
+        <g id="eSquint" class="part" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round">
+          <path d="M112 124 L134 132 L112 140"/><path d="M188 124 L166 132 L188 140"/>
+        </g>
+        <g id="eHalf" class="part">
+          <path d="M110 132 Q124 142 138 132" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          <circle cx="176" cy="134" r="11" fill="#3b2a3f"/><rect x="162" y="118" width="28" height="13" fill="#8a7a8e"/>
+          <path d="M163 131 h26" stroke="#3b2a3f" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <!-- Augenbrauen -->
+        <g id="brStern" class="part" stroke="#57475e" stroke-width="5" stroke-linecap="round"><path d="M108 104 L136 112"/><path d="M192 104 L164 112"/></g>
+        <g id="brUp" class="part" stroke="#57475e" stroke-width="5" fill="none" stroke-linecap="round"><path d="M106 102 Q122 90 138 100"/><path d="M194 102 Q178 90 162 100"/></g>
+        <g id="brSad" class="part" stroke="#57475e" stroke-width="5" stroke-linecap="round"><path d="M110 114 L136 104"/><path d="M190 114 L164 104"/></g>
+        <!-- Wangen -->
+        <g id="blush" class="part on" fill="#f59fb5" opacity=".65"><ellipse cx="102" cy="156" rx="12" ry="7"/><ellipse cx="198" cy="156" rx="12" ry="7"/></g>
+        <!-- Münder -->
+        <g id="mSmile" class="part on">
+          <path d="M132 158 Q150 178 168 158" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          <path d="M141 164 l4 8 l4 -6.5z" fill="#fff"/>
+        </g>
+        <path id="mFlat" class="part" d="M134 166 Q142 160 150 166 Q158 172 166 166" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <g id="mO" class="part"><ellipse cx="150" cy="168" rx="10" ry="13" fill="#3b2a3f"/><ellipse cx="150" cy="175" rx="6" ry="4" fill="#f28da6"/></g>
+        <g id="mYawn" class="part"><ellipse cx="150" cy="166" rx="12" ry="9" fill="#3b2a3f"/><ellipse cx="150" cy="170" rx="7" ry="3.5" fill="#f28da6"/></g>
+        <path id="mFrown" class="part" d="M132 174 Q150 156 168 174" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <path id="mSleep" class="part" d="M144 164 Q150 169 156 164" stroke="#3b2a3f" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <path id="mPlain" class="part" d="M134 160 Q150 174 166 160" stroke="#3b2a3f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+        <!-- Tränenbäche (drehen mit) -->
+        <g id="streams" class="part" stroke="#8fd3ff" stroke-width="6" stroke-linecap="round" fill="none" opacity=".85">
+          <path d="M114 140 Q108 160 112 182"/><path d="M186 140 Q192 160 188 182"/>
+        </g>
+      </g>
+     </g>
+    </g>
+    <!-- Tränen fallen immer nach unten (nicht mitgedreht) -->
+    <g id="tearsN" class="part" fill="#8fd3ff">
+      <path class="drop" d="M110 178 q-7 11 0 15 q7 -4 0 -15z"/><path class="drop d2" d="M190 178 q-7 11 0 15 q7 -4 0 -15z"/>
+    </g>
+    <g id="tearsD" class="part" fill="#8fd3ff">
+      <path class="drop" d="M188 222 q-7 11 0 15 q7 -4 0 -15z"/><path class="drop d2" d="M112 222 q-7 11 0 15 q7 -4 0 -15z"/>
+    </g>
+    <g id="zzz" class="part" font-family="Trebuchet MS, sans-serif" font-weight="900" fill="#fff" stroke="#6b5a72" stroke-width="2" paint-order="stroke">
+      <text class="zz" x="222" y="262" font-size="22">z</text><text class="zz" x="240" y="238" font-size="28">z</text><text class="zz" x="258" y="210" font-size="34">Z</text>
+    </g>
+  </svg>
+</div>
+
+<!-- ================= HUD ================= -->
+<div id="top">
+  <div id="title">Lärm-Fledermaus</div>
+  <div id="stageLabel">Psst … super leise!</div>
+</div>
+
+<div id="left">
+  <div id="timerCard" class="card">
+   <div class="tRow">
+    <svg id="ring" viewBox="0 0 80 80">
+      <circle cx="40" cy="40" r="33" fill="none" stroke="#ece3ef" stroke-width="9"/>
+      <circle id="ringFg" cx="40" cy="40" r="33" fill="none" stroke="#5cc26b" stroke-width="9" stroke-linecap="round" transform="rotate(-90 40 40)" stroke-dasharray="207.3" stroke-dashoffset="0"/>
+      <text x="40" y="47" text-anchor="middle" font-size="22">⏳</text>
+    </svg>
+    <div><div id="timerTxt">20:00</div><div id="timerSub">Arbeitszeit</div></div>
+    <button class="mini play" id="tStart" aria-label="Arbeitszeit starten" title="Arbeitszeit starten">▶</button>
+  </div>
+  <div id="bars"></div>
+  <div id="pauseInfo"></div>
+  </div>
+  <div id="gemCard" class="card">
+    <div id="gemRow">
+      <svg viewBox="0 0 40 40"><polygon points="20.0,2.0 24.8,14.4 38.1,15.1 27.8,23.5 31.2,36.4 20.0,29.2 8.8,36.4 12.2,23.5 1.9,15.1 15.2,14.4" fill="#ffc93c" stroke="#f0a020" stroke-width="2" stroke-linejoin="round"/><circle cx="15" cy="17" r="2.2" fill="#3b2a3f"/><circle cx="25" cy="17" r="2.2" fill="#3b2a3f"/><path d="M16 23 Q20 27 24 23" stroke="#3b2a3f" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="12.5" cy="21.5" r="2" fill="#ff9fb3" opacity=".7"/><circle cx="27.5" cy="21.5" r="2" fill="#ff9fb3" opacity=".7"/></svg>
+      <span id="gemCount">0</span>
+      <div id="gemBtns"><button class="mini" id="gemMinus" aria-label="Stern entfernen">−</button><button class="mini" id="gemPlus" aria-label="Stern hinzufügen">+</button></div>
+    </div>
+    <div id="gemBar"><div id="gemFill"></div></div>
+    <div id="gemGoal">20 = Spielpause</div>
+  </div>
+</div>
+
+<div id="tools">
+  <button class="tool" id="tDay" title="Tag / Nacht">🌙</button>
+  <button class="tool" id="tHallo" title="Halloween an/aus">🎃</button>
+  <button class="tool" id="tMic" title="Mikrofon an/aus">🎤</button>
+  <button class="tool" id="tSound" title="Ton an/aus">🔊</button>
+  <button class="tool" id="tFull" title="Vollbild">⛶</button>
+  <button class="tool" id="tSet" title="Einstellungen">⚙️</button>
+</div>
+
+<div id="bottom">
+  <div id="ctrlRow">
+    <button id="pauseBtn" title="Messung unterbrechen (Taste P)"><span id="pauseIco">✋</span><span id="pauseTxt">Ich erkläre kurz</span></button>
+    <div id="meterBox">
+      <div class="meter" id="liveMeter"><div class="cover"></div></div>
+      <div class="meterCap"><span>🎤 Mikrofon misst</span><span id="meterHint">leise ← → laut</span></div>
+    </div>
+  </div>
+  <div id="stages"></div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ================= Einstellungen ================= -->
+<div class="overlay" id="settings">
+  <div class="dialog">
+    <h2>Einstellungen <button class="x" data-close>✕</button></h2>
+
+    <section>
+      <h3 style="margin-top:0">Steuerung</h3>
+      <div class="row"><label>Stufe einstellen</label>
+        <div class="seg" id="segMode"><button data-v="hand">✋ per Hand</button><button data-v="mic">🎤 Mikrofon</button></div>
+      </div>
+      <p class="hint">Per Hand: Stufe antippen oder Tasten 1–4. Auch im Mikrofon-Modus kannst du jederzeit selbst eine Stufe wählen.</p>
+    </section>
+
+    <section id="micSec">
+      <h3 style="margin-top:0">Mikrofon-Stufen</h3>
+      <div class="privacy">🔒 Das Mikrofon misst nur die Lautstärke. Es wird nichts aufgenommen, gespeichert oder verschickt.</div>
+      <div class="row" style="margin-top:10px"><label>Gerade gemessen</label><span class="val" id="liveVal">–</span></div>
+      <div class="meter" id="setMeter"><div class="cover"></div></div>
+      <div class="row" id="micTestRow"><button class="btn light" id="micTest">🎤 Mikrofon zum Einstellen starten</button></div>
+      <div class="row"><label><span class="dot" style="background:var(--s2)"></span>Stufe 2 ab</label><input type="range" min="1" max="99" id="t2"><span class="val" id="t2v"></span></div>
+      <div class="row"><label><span class="dot" style="background:var(--s3)"></span>Stufe 3 ab</label><input type="range" min="1" max="99" id="t3"><span class="val" id="t3v"></span></div>
+      <div class="row"><label><span class="dot" style="background:var(--s4)"></span>Stufe 4 ab</label><input type="range" min="1" max="99" id="t4"><span class="val" id="t4v"></span></div>
+      <div class="row"><button class="btn" id="calib">🤫 Ruhe messen (5 Sek.)</button></div>
+      <p class="hint">„Ruhe messen“: Die Klasse arbeitet 5 Sekunden ganz normal leise. Danach werden die Grenzen automatisch passend gesetzt. Feinjustieren kannst du mit den Reglern.</p>
+      <div class="row"><label>Stufe steigt nach</label><input type="range" min="0.5" max="5" step="0.5" id="react"><span class="val" id="reactv"></span></div>
+      <div class="row"><label>Stufe sinkt nach</label><input type="range" min="1" max="10" step="0.5" id="calm"><span class="val" id="calmv"></span></div>
+      <p class="hint">So lösen kurze Geräusche (Husten, Stuhlrücken) keinen Alarm aus.</p>
+    </section>
+
+    <section>
+      <h3 style="margin-top:0">Arbeitszeit &amp; Auswertung</h3>
+      <div class="row"><label>Arbeitszeit anzeigen</label><label class="switch"><input type="checkbox" id="timerOn"><span></span></label></div>
+      <div class="row"><label>Dauer</label>
+        <div class="seg" id="segMin"><button data-v="10">10</button><button data-v="15">15</button><button data-v="20">20</button><button data-v="30">30</button><button data-v="45">45</button></div>
+        <input type="number" min="1" max="90" id="timerMin"> Min.
+      </div>
+      <p class="hint">Mit ▶ startest du die Arbeitszeit. Die Uhr läuft immer durch und misst, wie lange jede Farbe dran war. Am Ende gibt es die Auswertung.</p>
+      <div class="row"><label><span class="dot" style="background:var(--s1)"></span>2 Sterne ab … % Grün</label><input type="number" min="1" max="100" id="g2"> %</div>
+      <div class="row"><label><span class="dot" style="background:var(--s1)"></span>1 Stern ab … % Grün</label><input type="number" min="0" max="100" id="g1"> %</div>
+      <div class="row"><label><span class="dot" style="background:var(--s4)"></span>1 Stern Abzug ab mehr als … % Rot</label><input type="number" min="0" max="100" id="redMax"> %</div>
+    </section>
+
+    <section>
+      <h3 style="margin-top:0">Pause-Knopf</h3>
+      <div class="row"><label>Beschriftung</label><input type="text" id="pauseLabel" maxlength="24"></div>
+      <div class="row"><label>Symbol</label>
+        <div class="seg" id="segIco"><button data-v="✋">✋</button><button data-v="🗣️">🗣️</button><button data-v="🤫">🤫</button><button data-v="👩‍🏫">👩‍🏫</button><button data-v="👨‍🏫">👨‍🏫</button><button data-v="⏸️">⏸️</button></div>
+      </div>
+      <p class="hint">Während der Pause läuft die Uhr weiter, aber die Lautstärke wird nicht bewertet und zählt nicht in die Auswertung. Nochmal tippen (oder Taste P) und es geht weiter.</p>
+    </section>
+
+    <section>
+      <h3 style="margin-top:0">Belohnung</h3>
+      <div class="row"><label>Aktueller Sternestand</label><input type="number" min="0" max="999" id="gemSet"></div>
+      <div class="row"><label>Ziel (Sterne)</label><input type="number" min="1" max="200" id="goal"></div>
+      <div class="row"><label>Belohnung</label><input type="text" id="reward" maxlength="30"></div>
+      <div class="row"><label>Zusätzlich bei jedem Lärm-Alarm sofort 1 Stern abziehen</label><label class="switch"><input type="checkbox" id="removeOn"><span></span></label></div>
+      <div class="row"><button class="btn light" id="gemReset">Sterne auf 0 setzen</button></div>
+    </section>
+
+    <section>
+      <h3 style="margin-top:0">Allgemein</h3>
+      <div class="row"><label>Ton</label><label class="switch"><input type="checkbox" id="soundOn"><span></span></label></div>
+      <p class="hint">Tasten: 1–4 Stufe · T Tag/Nacht · H Halloween · M Mikrofon · F Vollbild · P Pause · + / − Stern</p>
+    </section>
+  </div>
+</div>
+
+<div class="overlay" id="evalDialog">
+  <div class="dialog">
+    <div style="font-size:26px;font-weight:900">Auswertung 🦇</div>
+    <div id="evalBars"></div>
+    <div id="evalStars"></div>
+    <div id="evalMsg"></div>
+    <div class="row" style="justify-content:center;margin-top:16px"><button class="btn" id="evalOk">Weiter</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="goalDialog">
+  <div class="dialog">
+    <div style="font-size:70px">🎉🦇🎉</div>
+    <div class="big">Geschafft!</div>
+    <div style="font-size:22px;font-weight:800" id="goalText"></div>
+    <div class="row" style="justify-content:center;margin-top:18px">
+      <button class="btn" id="goalRedeem">Einlösen (wieder bei 0 starten)</button>
+      <button class="btn light" data-close>Später</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+"use strict";
+const $ = id => document.getElementById(id);
+const KEY = "laermFledermausKopie.v1";
+const LABELS = ["", "Psst … super leise!", "Etwas zu laut", "Viel zu laut!", "Lärm-Alarm!"];
+const DEF = {night:true, halloween:true, sound:true, mode:"hand", t2:40, t3:58, t4:75, react:1.5, calm:3,
+  timerOn:true, timerMin:20, goal:20, reward:"Spielpause", removeOn:false, diamonds:0,
+  g2:80, g1:50, redMax:5, pauseLabel:"Ich erkläre kurz", pauseIcon:"✋", ver:2};
+let S = Object.assign({}, DEF);
+try { const raw = localStorage.getItem(KEY); if (raw) Object.assign(S, JSON.parse(raw)); } catch(e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e) {} };
+
+let stage = 1;
+if (S.ver !== 2){ S.ver = 2; S.removeOn = false; S.timerMin = 20; }
+const ST = ["#5cc26b","#f4c430","#f39233","#e8505b"];
+let phase = {running:false, elapsed:0, total:S.timerMin*60, t:[0,0,0,0,0], pause:0};
+let paused = false;
+
+/* ---------- Ton (wird erzeugt, keine Dateien) ---------- */
+let actx = null;
+const ac = () => { if (!actx) { try { actx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e) {} } if (actx && actx.state === "suspended") actx.resume(); return actx; };
+function tone(freqs, dur=0.18, type="sine", gap=0.12, vol=0.18) {
+  if (!S.sound) return; const a = ac(); if (!a) return;
+  freqs.forEach((f,i) => {
+    const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + i*gap;
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t+0.02); g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+0.05);
+  });
+}
+const sndGem = () => tone([784, 988, 1175, 1568], 0.35, "triangle", 0.11);
+const sndLose = () => tone([523, 440, 349], 0.3, "sine", 0.18, 0.14);
+const sndPop = () => tone([1200], 0.08, "sine", 0, 0.08);
+const sndUp2 = () => tone([660, 880], 0.25, "triangle", 0.16, 0.2);
+const sndUp3 = () => tone([740, 988, 740, 988], 0.22, "triangle", 0.14, 0.22);
+const sndDown = () => tone([784, 587], 0.25, "sine", 0.16, 0.12);
+const sndAlarm = () => tone([988, 740, 988, 740, 988, 740, 988], 0.17, "square", 0.17, 0.13);
+const sndGoal = () => tone([523,659,784,1047,784,1047], 0.3, "triangle", 0.13);
+
+/* ---------- Szene aufbauen ---------- */
+(function buildScene(){
+  const NS = "http://www.w3.org/2000/svg";
+  const stars = $("stars");
+  for (let i=0;i<110;i++){
+    const c = document.createElementNS(NS,"circle");
+    c.setAttribute("cx", Math.random()*1600); c.setAttribute("cy", Math.random()*520);
+    c.setAttribute("r", (Math.random()*1.8+0.6).toFixed(1)); c.setAttribute("fill","#fff");
+    if (Math.random()<.5){ c.classList.add("twinkle"); c.style.animationDelay = (-Math.random()*3)+"s"; }
+    stars.appendChild(c);
+  }
+  [[1050,310],[860,250],[1400,80]].forEach(([x,y]) => {
+    const s = document.createElementNS(NS,"path");
+    s.setAttribute("d",`M${x} ${y-10} L${x+3} ${y-3} L${x+10} ${y} L${x+3} ${y+3} L${x} ${y+10} L${x-3} ${y+3} L${x-10} ${y} L${x-3} ${y-3}Z`);
+    s.setAttribute("fill","#fff6c8"); s.classList.add("twinkle"); stars.appendChild(s);
+  });
+  // Lichterkette
+  const gar = $("garland"), len = gar.getTotalLength(), bulbs = $("bulbs");
+  const cols = ["#ff9a3c","#b07cff","#ffd75e","#7ee08a"];
+  for (let i=1;i<26;i++){
+    const p = gar.getPointAtLength(len*i/26);
+    const g = document.createElementNS(NS,"g"); g.setAttribute("class","bulb"); g.style.color = cols[i%4];
+    g.innerHTML = `<rect x="${p.x-4}" y="${p.y}" width="8" height="6" fill="#5a3f2e"/><ellipse cx="${p.x}" cy="${p.y+15}" rx="8" ry="11" fill="${cols[i%4]}"/>`;
+    bulbs.appendChild(g);
+  }
+  // Kürbisse
+  const pk = $("pumpkins");
+  const pumpkin = (x,y,s,face) => {
+    const g = document.createElementNS(NS,"g");
+    g.setAttribute("transform",`translate(${x} ${y}) scale(${s})`);
+    g.innerHTML = `<ellipse class="nightOnly" cx="0" cy="-10" rx="80" ry="60" fill="url(#gGlow)"/>
+      <path d="M-4 -46 q2 -16 12 -20" stroke="#5f7d36" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M8 -58 q14 -6 20 4 q-12 4 -20 -4z" fill="#79a645"/>
+      <ellipse cx="-24" cy="-10" rx="26" ry="36" fill="#e9781f"/><ellipse cx="24" cy="-10" rx="26" ry="36" fill="#e9781f"/>
+      <ellipse cx="0" cy="-10" rx="28" ry="38" fill="#f38c2b"/>
+      ${face ? `<ellipse class="pumpFace" cx="-13" cy="-18" rx="6" ry="8"/><ellipse class="pumpFace" cx="13" cy="-18" rx="6" ry="8"/>
+      <path class="pumpFace" d="M-16 0 Q0 16 16 0 Q0 7 -16 0z"/>` : ""}`;
+    pk.appendChild(g);
+  };
+  pumpkin(470,790,1.1,true); pumpkin(545,805,.7,false); pumpkin(1130,800,1.25,true); pumpkin(1215,812,.75,true); pumpkin(220,840,.8,false);
+  // Blätter & Glühwürmchen
+  const fx = $("fx"), lc = ["#f0a030","#e46c2c","#f7c948","#d9542b","#c9844a"];
+  for (let i=0;i<14;i++){
+    const l = document.createElement("div"); l.className="leaf";
+    l.style.left = (Math.random()*100)+"vw"; l.style.background = lc[i%lc.length];
+    l.style.animationDuration = (9+Math.random()*9)+"s"; l.style.animationDelay = (-Math.random()*18)+"s";
+    fx.appendChild(l);
+  }
+  for (let i=0;i<16;i++){
+    const f = document.createElement("div"); f.className="firefly";
+    f.style.left = (Math.random()*96)+"vw"; f.style.top = (45+Math.random()*50)+"vh";
+    f.style.animationDuration = (6+Math.random()*6)+"s"; f.style.animationDelay = (-Math.random()*8)+"s";
+    fx.appendChild(f);
+  }
+  setInterval(() => {
+    if (!S.night || Math.random() < .5) return;
+    const s = document.createElement("div"); s.className = "shooting";
+    s.style.left = (40+Math.random()*55)+"vw"; s.style.top = (3+Math.random()*25)+"vh";
+    fx.appendChild(s); setTimeout(() => s.remove(), 1400);
+  }, 9000);
+})();
+
+/* ---------- Stufen-Buttons ---------- */
+function miniFace(n){
+  const face = {
+    1:`<circle cx="24" cy="31" r="3.4" fill="#3b2a3f"/><circle cx="36" cy="31" r="3.4" fill="#3b2a3f"/><path d="M24 39 Q30 45 36 39" stroke="#3b2a3f" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    2:`<circle cx="24" cy="31" r="3.4" fill="#3b2a3f"/><circle cx="36" cy="31" r="3.4" fill="#3b2a3f"/><path d="M19 24 l8 3 M41 24 l-8 3" stroke="#57475e" stroke-width="2.2" stroke-linecap="round"/><path d="M24 41 q3 -3 6 0 q3 3 6 0" stroke="#3b2a3f" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    3:`<circle cx="23" cy="30" r="5.5" fill="#fff" stroke="#3b2a3f" stroke-width="1.6"/><circle cx="37" cy="30" r="5.5" fill="#fff" stroke="#3b2a3f" stroke-width="1.6"/><circle cx="23" cy="31" r="2.4" fill="#3b2a3f"/><circle cx="37" cy="31" r="2.4" fill="#3b2a3f"/><ellipse cx="30" cy="41" rx="3.4" ry="4.4" fill="#3b2a3f"/>`,
+    4:`<path d="M19 30 q5 4 9 0 M32 30 q5 4 9 0" stroke="#3b2a3f" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M24 44 Q30 38 36 44" stroke="#3b2a3f" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M20 34 q-3 6 0 8 q3 -2 0 -8z M40 34 q-3 6 0 8 q3 -2 0 -8z" fill="#5fb8f0"/>`
+  }[n];
+  return `<svg viewBox="0 0 60 60"><path d="M15 26 L10 6 Q22 11 26 20Z M45 26 L50 6 Q38 11 34 20Z" fill="#7a6a80"/><path d="M16 22 L14 11 Q20 14 22 19Z M44 22 L46 11 Q40 14 38 19Z" fill="#f2b8c6"/><ellipse cx="30" cy="35" rx="19" ry="17" fill="#8a7a8e"/>${face}</svg>`;
+}
+const stagesEl = $("stages");
+for (let n=1;n<=4;n++){
+  const b = document.createElement("button"); b.className="sbtn"; b.dataset.n=n;
+  b.style.setProperty("--c", `var(--s${n})`); b.title = `Stufe ${n}: ${LABELS[n]}`; b.innerHTML = miniFace(n);
+  b.addEventListener("click", () => { manualHoldUntil = performance.now() + 4000; setStage(n); });
+  stagesEl.appendChild(b);
+}
+
+/* ---------- Gesicht ---------- */
+const PARTS = ["eOpen","eWide","eClosed","eSquint","eHalf","brStern","brUp","brSad","blush","mSmile","mFlat","mO","mYawn","mFrown","mSleep","mPlain","streams","tearsN","tearsD","zzz","wingsOpen","wingsFold","branch"];
+const LOOKS = {
+  n1:["eOpen","mSmile","blush","wingsOpen"],
+  n2:["eOpen","brStern","mFlat","wingsFold"],
+  n3:["eWide","brUp","mO","wingsOpen"],
+  n4:["eClosed","brSad","mFrown","streams","tearsN","wingsOpen"],
+  d1:["eClosed","mSleep","blush","zzz","wingsFold","branch"],
+  d2:["eHalf","mYawn","wingsFold","branch"],
+  d3:["eWide","mO","wingsOpen","branch"],
+  d4:["eClosed","mPlain","streams","tearsD","wingsFold","branch"]
+};
+function render(){
+  document.body.classList.toggle("night", S.night);
+  document.body.classList.toggle("day", !S.night);
+  document.body.classList.toggle("halloween", S.halloween);
+  document.body.classList.toggle("mic", S.mode === "mic");
+  for (let i=1;i<=4;i++) document.body.classList.toggle("s"+i, stage===i);
+  document.documentElement.style.setProperty("--stage", `var(--s${stage})`);
+  const on = LOOKS[(S.night?"n":"d")+stage];
+  PARTS.forEach(p => $(p).classList.toggle("on", on.includes(p)));
+  $("batRot").setAttribute("transform", S.night ? "" : "rotate(180 150 165)");
+  const bat = $("bat");
+  bat.classList.toggle("wave", S.night && stage===1);
+  bat.classList.toggle("droop", S.night && stage===4);
+  $("stageLabel").textContent = paused ? `${S.pauseIcon} ${S.pauseLabel || "Pause"}` : LABELS[stage];
+  document.querySelectorAll(".sbtn").forEach(b => b.classList.toggle("active", +b.dataset.n === stage));
+  $("tDay").textContent = S.night ? "☀️" : "🌙";
+  $("tDay").title = S.night ? "Zum Tag wechseln" : "Zur Nacht wechseln";
+  $("tHallo").classList.toggle("dim", !S.halloween);
+  $("tSound").textContent = S.sound ? "🔊" : "🔇";
+  $("tMic").classList.toggle("active", S.mode === "mic");
+  renderGems(); renderTimer(); renderThresholds();
+}
+
+function setStage(n){
+  if (n === stage) return;
+  const prev = stage; stage = n;
+  const lbl = $("stageLabel"); lbl.classList.remove("pop"); void lbl.offsetWidth; lbl.classList.add("pop");
+  if (n >= 3 && n > prev){ const w=$("batWrap"); w.classList.remove("shake"); void w.offsetWidth; w.classList.add("shake"); }
+  if (n > prev) (n === 4 ? sndAlarm : n === 3 ? sndUp3 : sndUp2)(); else sndDown();
+  if (n === 4 && prev !== 4 && S.removeOn && S.diamonds > 0) loseGem();
+  render();
+}
+
+/* ---------- Herzchen ---------- */
+$("batWrap").addEventListener("click", e => {
+  ac(); sndPop();
+  for (let i=0;i<5;i++){
+    const h = document.createElement("div"); h.className="heart";
+    h.textContent = ["💜","💖","🧡","💛"][i%4];
+    h.style.left = (e.clientX + (Math.random()*60-30))+"px"; h.style.top = (e.clientY + (Math.random()*30-15))+"px";
+    h.style.setProperty("--dx", (Math.random()*120-60)+"px"); h.style.animationDelay = (i*0.08)+"s";
+    document.body.appendChild(h); setTimeout(() => h.remove(), 1900);
+  }
+});
+
+/* ---------- Diamanten ---------- */
+const GEM = $("gemRow").querySelector("svg").outerHTML;
+function renderGems(){
+  $("gemCount").textContent = S.diamonds;
+  $("gemFill").style.width = Math.min(100, S.diamonds / S.goal * 100) + "%";
+  $("gemGoal").textContent = `${S.goal} = ${S.reward || "Belohnung"}`;
+}
+function sparkles(x,y){
+  for (let i=0;i<14;i++){
+    const s = document.createElement("div"); s.className="spark";
+    s.style.left=x+"px"; s.style.top=y+"px"; s.style.background=["#ffd34f","#fff6a0","#ffb347","#ffe9a8"][i%4];
+    const a = Math.random()*Math.PI*2, d = 60+Math.random()*90;
+    s.style.setProperty("--dx", Math.cos(a)*d+"px"); s.style.setProperty("--dy", Math.sin(a)*d+"px");
+    document.body.appendChild(s); setTimeout(() => s.remove(), 1100);
+  }
+}
+function addGem(big){
+  S.diamonds++; save(); sndGem();
+  if (big){
+    const g = document.createElement("div"); g.className="bigGem"; g.innerHTML = GEM.replace("<svg","<svg width='100%'");
+    document.body.appendChild(g); setTimeout(() => g.remove(), 1900);
+    sparkles(innerWidth/2, innerHeight*0.45);
+  }
+  const c = $("gemCard"); c.classList.remove("bump"); void c.offsetWidth; c.classList.add("bump");
+  renderGems();
+  if (S.diamonds === S.goal) setTimeout(() => { sndGoal(); $("goalText").textContent = `${S.goal} Sterne = ${S.reward || "Belohnung"}!`; $("goalDialog").classList.add("open"); }, big ? 1500 : 300);
+}
+function loseGem(){
+  S.diamonds = Math.max(0, S.diamonds-1); save(); setTimeout(sndLose, 1300);
+  const r = $("gemCount").getBoundingClientRect();
+  const g = document.createElement("div"); g.className="lostGem"; g.innerHTML = GEM.replace("<svg","<svg width='100%'");
+  g.style.left = r.left+"px"; g.style.top = r.top+"px"; document.body.appendChild(g); setTimeout(() => g.remove(), 1600);
+  const m = document.createElement("div"); m.className="minus"; m.textContent="−1";
+  m.style.left = (r.right+6)+"px"; m.style.top = (r.top-6)+"px"; document.body.appendChild(m); setTimeout(() => m.remove(), 1500);
+  const c = $("gemCard"); c.classList.remove("lose"); void c.offsetWidth; c.classList.add("lose");
+  renderGems();
+}
+$("gemPlus").addEventListener("click", e => { e.stopPropagation(); ac(); addGem(false); });
+$("gemMinus").addEventListener("click", e => { e.stopPropagation(); if (S.diamonds>0){ S.diamonds--; save(); renderGems(); } });
+$("goalRedeem").addEventListener("click", () => { S.diamonds = 0; save(); renderGems(); $("goalDialog").classList.remove("open"); });
+
+/* ---------- Arbeitszeit ---------- */
+const CIRC = 2*Math.PI*33;
+const fmt = sec => { sec = Math.max(0, Math.ceil(sec)); return `${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`; };
+function pcts(){
+  const act = phase.t[1]+phase.t[2]+phase.t[3]+phase.t[4];
+  return [1,2,3,4].map(i => act ? phase.t[i]/act*100 : 0);
+}
+function barsHTML(p){
+  return p.map((v,i) => `<div class="bar"><span style="width:${v.toFixed(1)}%;background:${ST[i]}"></span></div><span class="bpct">${Math.round(v)} %</span>`).join("");
+}
+(function initBars(){ $("bars").innerHTML = barsHTML([0,0,0,0]); })();
+function renderTimer(){
+  $("timerCard").classList.toggle("off", !S.timerOn);
+  const total = phase.running ? phase.total : S.timerMin*60;
+  $("timerTxt").textContent = fmt(total - phase.elapsed);
+  $("ringFg").setAttribute("stroke-dashoffset", (CIRC*(1 - phase.elapsed/total)).toFixed(1));
+  $("ringFg").setAttribute("stroke", paused ? "#b9b2cc" : ST[stage-1]);
+  $("timerSub").textContent = !phase.running ? "Arbeitszeit" : paused ? "Pause" : "läuft";
+  const b = $("tStart"); b.textContent = phase.running ? "■" : "▶"; b.classList.toggle("stop", phase.running);
+  b.title = phase.running ? "Arbeitszeit beenden und auswerten" : "Arbeitszeit starten";
+  const p = pcts();
+  $("bars").querySelectorAll(".bar span").forEach((el,i) => el.style.width = p[i].toFixed(1)+"%");
+  $("bars").querySelectorAll(".bpct").forEach((el,i) => el.textContent = Math.round(p[i])+" %");
+  $("pauseInfo").textContent = phase.pause >= 1 ? `${S.pauseIcon} Pause: ${fmt(phase.pause)}` : "";
+}
+function startPhase(){
+  ac();
+  phase = {running:true, elapsed:0, total:S.timerMin*60, t:[0,0,0,0,0], pause:0};
+  tone([523,659,784], 0.2, "triangle", 0.1, 0.15);
+  toast(`⏱ ${S.timerMin} Minuten Arbeitszeit – los geht's!`);
+  renderTimer();
+}
+function finishPhase(){
+  phase.running = false;
+  if (paused) setPaused(false);
+  const p = pcts(), act = phase.t[1]+phase.t[2]+phase.t[3]+phase.t[4];
+  renderTimer();
+  if (act < 1){ toast("Keine Messzeit – keine Auswertung."); return; }
+  const earned = p[0] >= S.g2 ? 2 : p[0] >= S.g1 ? 1 : 0;
+  const penalty = p[3] > S.redMax ? 1 : 0;
+  const names = ["Grün","Gelb","Orange","Rot"];
+  $("evalBars").innerHTML = p.map((v,i) => `<b>${names[i]}</b><div class="bar"><span style="width:${v.toFixed(1)}%;background:${ST[i]}"></span></div><b>${Math.round(v)} %</b>`).join("");
+  let stars = "⭐".repeat(earned) + (penalty ? '<span class="lost">⭐</span>' : "");
+  $("evalStars").innerHTML = stars || "🦇";
+  const net = earned - penalty;
+  let msg = earned === 2 ? `Super! ${Math.round(p[0])} % im grünen Bereich – 2 Sterne!` :
+            earned === 1 ? `Gut gemacht! ${Math.round(p[0])} % Grün – 1 Stern.` :
+                           `Diesmal nur ${Math.round(p[0])} % Grün – kein Stern. Nächstes Mal klappt's!`;
+  if (penalty) msg += ` Aber ${Math.round(p[3])} % Rot – 1 Stern weniger.`;
+  $("evalMsg").textContent = msg;
+  $("evalDialog").classList.add("open");
+  net > 0 ? sndGoal() : net < 0 ? sndLose() : sndDown();
+  const before = S.diamonds;
+  S.diamonds = Math.max(0, S.diamonds + net); save(); renderGems();
+  if (net > 0) sparkles(innerWidth/2, innerHeight*0.4);
+  phase.goalHit = before < S.goal && S.diamonds >= S.goal;
+}
+$("evalOk").addEventListener("click", () => {
+  $("evalDialog").classList.remove("open");
+  if (phase.goalHit){ phase.goalHit = false; $("goalText").textContent = `${S.goal} Sterne = ${S.reward || "Belohnung"}!`; $("goalDialog").classList.add("open"); }
+});
+$("tStart").addEventListener("click", e => { e.stopPropagation(); phase.running ? finishPhase() : startPhase(); });
+
+/* ---------- Pause ---------- */
+function renderPauseBtn(){
+  $("pauseIco").textContent = paused ? "▶" : S.pauseIcon;
+  $("pauseTxt").textContent = paused ? "Weiter" : (S.pauseLabel || "Pause");
+}
+function setPaused(v){
+  paused = v; upAcc = 0; downAcc = 0;
+  document.body.classList.toggle("paused", paused);
+  $("stageLabel").textContent = paused ? `${S.pauseIcon} ${S.pauseLabel || "Pause"}` : LABELS[stage];
+  renderPauseBtn(); renderTimer();
+  tone(paused ? [660,523] : [523,660], 0.18, "sine", 0.12, 0.12);
+}
+$("pauseBtn").addEventListener("click", () => { ac(); setPaused(!paused); });
+
+let lastTick = performance.now();
+setInterval(() => {
+  const now = performance.now(), dt = (now-lastTick)/1000; lastTick = now;
+  if (phase.running){
+    phase.elapsed += dt;
+    if (paused) phase.pause += dt; else phase.t[stage] += dt;
+    if (phase.elapsed >= phase.total){ phase.elapsed = phase.total; finishPhase(); }
+  }
+  if (S.timerOn) renderTimer();
+}, 250);
+
+/* ---------- Mikrofon (nur Lautstärke, keine Aufnahme) ---------- */
+let stream=null, analyser=null, buf=null, level=0, micRunning=false;
+let upAcc=0, downAcc=0, lastMic=performance.now(), manualHoldUntil=0;
+let calibrating=null;
+async function startMic(){
+  if (micRunning) return true;
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error("unsupported");
+    stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const a = ac(); const src = a.createMediaStreamSource(stream);
+    analyser = a.createAnalyser(); analyser.fftSize = 2048; buf = new Float32Array(analyser.fftSize);
+    src.connect(analyser);  // nur Analyse – kein Rekorder, kein Speichern
+    micRunning = true; lastMic = performance.now(); requestAnimationFrame(micLoop);
+    $("micTestRow").style.display = "none";
+    return true;
+  } catch(e){
+    toast("Das Mikrofon ist hier nicht verfügbar. Stell die Stufen bitte per Hand ein.");
+    return false;
+  }
+}
+function stopMic(){
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream=null; analyser=null; micRunning=false; level=0; updateMeters();
+  $("micTestRow").style.display = "";
+}
+function micLoop(){
+  if (!micRunning) return;
+  analyser.getFloatTimeDomainData(buf);
+  let sum=0; for (let i=0;i<buf.length;i++) sum += buf[i]*buf[i];
+  const rms = Math.sqrt(sum/buf.length);
+  const db = 20*Math.log10(rms + 1e-9);
+  const raw = Math.max(0, Math.min(100, (db + 70) * (100/60)));
+  level += (raw - level) * 0.12;
+  const now = performance.now(), dt = (now - lastMic)/1000; lastMic = now;
+  if (calibrating){ calibrating.sum += level; calibrating.n++; }
+  if (S.mode === "mic" && !paused && now > manualHoldUntil){
+    const target = level >= S.t4 ? 4 : level >= S.t3 ? 3 : level >= S.t2 ? 2 : 1;
+    if (target > stage){ upAcc += dt; downAcc = 0; if (upAcc >= S.react){ upAcc = 0; setStage(target); } }
+    else if (target < stage){ downAcc += dt; upAcc = 0; if (downAcc >= S.calm){ downAcc = 0; setStage(stage-1); } }
+    else { upAcc = 0; downAcc = 0; }
+  }
+  updateMeters();
+  requestAnimationFrame(micLoop);
+}
+function updateMeters(){
+  document.querySelectorAll(".meter .cover").forEach(c => c.style.left = level + "%");
+  $("liveVal").textContent = micRunning ? Math.round(level) : "–";
+}
+function renderThresholds(){
+  const r = document.documentElement.style;
+  r.setProperty("--t2", S.t2+"%"); r.setProperty("--t3", S.t3+"%"); r.setProperty("--t4", S.t4+"%");
+}
+
+/* ---------- Toast ---------- */
+let toastT;
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("show"), 3500); }
+
+/* ---------- Werkzeugleiste ---------- */
+async function setMode(m){
+  if (m === "mic"){ if (!(await startMic())) { S.mode="hand"; render(); syncSettings(); return; } toast("🎤 Mikrofon an – es wird nichts aufgenommen."); }
+  else if (!$("settings").classList.contains("open")) stopMic();
+  S.mode = m; save(); render(); syncSettings();
+}
+$("tDay").addEventListener("click", () => { S.night = !S.night; save(); render(); });
+$("tHallo").addEventListener("click", () => { S.halloween = !S.halloween; save(); render(); });
+$("tSound").addEventListener("click", () => { S.sound = !S.sound; save(); render(); syncSettings(); if (S.sound){ ac(); sndPop(); } });
+$("tMic").addEventListener("click", () => setMode(S.mode === "mic" ? "hand" : "mic"));
+$("tFull").addEventListener("click", toggleFull);
+$("tSet").addEventListener("click", () => { syncSettings(); $("settings").classList.add("open"); });
+function toggleFull(){
+  const d = document, el = d.documentElement;
+  if (!(d.fullscreenElement || d.webkitFullscreenElement)) (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el);
+  else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
+}
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", () => {
+  b.closest(".overlay").classList.remove("open");
+  if (b.closest("#settings") && S.mode !== "mic") stopMic();
+}));
+document.querySelectorAll(".overlay").forEach(o => o.addEventListener("click", e => {
+  if (e.target === o){ o.classList.remove("open"); if (o.id==="settings" && S.mode !== "mic") stopMic(); }
+}));
+
+/* ---------- Einstellungen ---------- */
+function syncSettings(){
+  document.querySelectorAll("#segMode button").forEach(b => b.classList.toggle("on", b.dataset.v === S.mode));
+  ["t2","t3","t4"].forEach(k => { $(k).value = S[k]; $(k+"v").textContent = S[k]; });
+  $("react").value = S.react; $("reactv").textContent = S.react + " s";
+  $("calm").value = S.calm; $("calmv").textContent = S.calm + " s";
+  $("timerOn").checked = S.timerOn; $("timerMin").value = S.timerMin;
+  $("g2").value = S.g2; $("g1").value = S.g1; $("redMax").value = S.redMax; $("pauseLabel").value = S.pauseLabel;
+  document.querySelectorAll("#segIco button").forEach(b => b.classList.toggle("on", b.dataset.v === S.pauseIcon));
+  document.querySelectorAll("#segMin button").forEach(b => b.classList.toggle("on", +b.dataset.v === S.timerMin));
+  $("gemSet").value = S.diamonds; $("goal").value = S.goal; $("reward").value = S.reward; $("removeOn").checked = S.removeOn; $("soundOn").checked = S.sound;
+  $("micTestRow").style.display = micRunning ? "none" : "";
+}
+document.querySelectorAll("#segMode button").forEach(b => b.addEventListener("click", () => setMode(b.dataset.v)));
+["t2","t3","t4"].forEach(k => $(k).addEventListener("input", () => {
+  let v = +$(k).value;
+  if (k==="t2") v = Math.min(v, S.t3-2);
+  if (k==="t3") v = Math.max(S.t2+2, Math.min(v, S.t4-2));
+  if (k==="t4") v = Math.max(v, S.t3+2);
+  S[k] = v; $(k).value = v; $(k+"v").textContent = v; save(); renderThresholds();
+}));
+$("react").addEventListener("input", () => { S.react = +$("react").value; $("reactv").textContent = S.react+" s"; save(); });
+$("calm").addEventListener("input", () => { S.calm = +$("calm").value; $("calmv").textContent = S.calm+" s"; save(); });
+$("micTest").addEventListener("click", startMic);
+$("calib").addEventListener("click", async () => {
+  if (!(await startMic())) return;
+  const btn = $("calib"); btn.disabled = true; calibrating = {sum:0,n:0};
+  let s = 5; btn.textContent = `🤫 Leise sein … ${s}`;
+  const iv = setInterval(() => {
+    s--; if (s > 0){ btn.textContent = `🤫 Leise sein … ${s}`; return; }
+    clearInterval(iv);
+    const base = calibrating.n ? calibrating.sum / calibrating.n : 30; calibrating = null;
+    S.t2 = Math.min(90, Math.round(base + 8)); S.t3 = Math.min(94, Math.round(base + 18)); S.t4 = Math.min(98, Math.round(base + 28));
+    save(); syncSettings(); renderThresholds();
+    btn.disabled = false; btn.textContent = "🤫 Ruhe messen (5 Sek.)"; toast("Grenzen gesetzt ✔");
+  }, 1000);
+});
+$("timerOn").addEventListener("change", () => { S.timerOn = $("timerOn").checked; save(); render(); });
+function setMin(m){ m = Math.max(1, Math.min(90, Math.round(m)||20)); S.timerMin = m; if (!phase.running) phase.total = m*60; save(); syncSettings(); renderTimer(); }
+const clampPct = (id, def) => { const v = Math.round(+$(id).value); return isNaN(v) ? def : Math.max(0, Math.min(100, v)); };
+$("g2").addEventListener("change", () => { S.g2 = Math.max(clampPct("g2",80), S.g1); save(); syncSettings(); });
+$("g1").addEventListener("change", () => { S.g1 = Math.min(clampPct("g1",50), S.g2); save(); syncSettings(); });
+$("redMax").addEventListener("change", () => { S.redMax = clampPct("redMax",5); save(); syncSettings(); });
+$("pauseLabel").addEventListener("input", () => { S.pauseLabel = $("pauseLabel").value; save(); renderPauseBtn(); if (paused) $("stageLabel").textContent = `${S.pauseIcon} ${S.pauseLabel || "Pause"}`; });
+document.querySelectorAll("#segIco button").forEach(b => b.addEventListener("click", () => { S.pauseIcon = b.dataset.v; save(); syncSettings(); renderPauseBtn(); renderTimer(); }));
+document.querySelectorAll("#segMin button").forEach(b => b.addEventListener("click", () => setMin(+b.dataset.v)));
+$("timerMin").addEventListener("change", () => setMin(+$("timerMin").value));
+$("goal").addEventListener("change", () => { S.goal = Math.max(1, Math.min(200, Math.round(+$("goal").value)||20)); save(); syncSettings(); renderGems(); });
+$("reward").addEventListener("input", () => { S.reward = $("reward").value; save(); renderGems(); });
+$("gemSet").addEventListener("change", () => { S.diamonds = Math.max(0, Math.min(999, Math.round(+$("gemSet").value)||0)); save(); renderGems(); syncSettings(); toast(`Sternestand: ${S.diamonds} ⭐`); });
+$("removeOn").addEventListener("change", () => { S.removeOn = $("removeOn").checked; save(); });
+$("soundOn").addEventListener("change", () => { S.sound = $("soundOn").checked; save(); render(); });
+$("gemReset").addEventListener("click", () => { S.diamonds = 0; save(); renderGems(); toast("Sterne zurückgesetzt"); });
+
+/* ---------- Tastatur ---------- */
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  if ("1234".includes(k) && k.length===1){ manualHoldUntil = performance.now()+4000; setStage(+k); }
+  else if (k==="arrowup") { manualHoldUntil = performance.now()+4000; setStage(Math.min(4, stage+1)); }
+  else if (k==="arrowdown") { manualHoldUntil = performance.now()+4000; setStage(Math.max(1, stage-1)); }
+  else if (k==="t") $("tDay").click();
+  else if (k==="h") $("tHallo").click();
+  else if (k==="m") $("tMic").click();
+  else if (k==="f") toggleFull();
+  else if (k==="+") $("gemPlus").click();
+  else if (k==="-") $("gemMinus").click();
+  else if (k==="p") $("pauseBtn").click();
+  else if (k==="escape") document.querySelectorAll(".overlay.open").forEach(o => o.classList.remove("open"));
+});
+
+/* ---------- Bildschirm wach halten ---------- */
+let wake=null;
+async function keepAwake(){ try { if ("wakeLock" in navigator && !wake) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release", () => wake=null); } } catch(e){} }
+document.addEventListener("click", keepAwake, {once:true});
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
+
+/* ---------- Start ---------- */
+if (S.mode === "mic"){ S.mode = "hand"; toast("Tippe auf 🎤, um das Mikrofon wieder einzuschalten."); }
+render(); syncSettings(); renderPauseBtn();
+// Speicher dauerhaft anfordern und prüfen, ob der Browser überhaupt speichert
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e) {}
+(function checkStorage(){
+  let ok = false;
+  try { localStorage.setItem(KEY+".test","1"); ok = localStorage.getItem(KEY+".test") === "1"; localStorage.removeItem(KEY+".test"); } catch(e) {}
+  if (!ok) setTimeout(() => toast("Achtung: Dieser Browser speichert nichts (privater Modus?). Sterne gehen beim Schließen verloren."), 1500);
+})();
+})();
+</script>
+</body>
+</html>

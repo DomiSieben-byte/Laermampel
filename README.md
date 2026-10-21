@@ -5,3 +5,5 @@ Steuerung per Hand oder per Mikrofon (es wird nur die Lautstärke gemessen, nich
 Mit Ruhe-Timer, Sternen als Belohnung, Tag/Nacht- und Halloween-Modus.
 
 Läuft im Browser: https://domisieben-byte.github.io/Laermampel/
+
+Kopie zum Weitergeben (wird nicht mit verändert): https://domisieben-byte.github.io/Laermampel/fledermaus/
